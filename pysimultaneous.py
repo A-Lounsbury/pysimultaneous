@@ -34,6 +34,27 @@ class simGame:
     
     def enterPayoffs(self, payoffs = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]):
         self.payoffMatrix = payoffs
+        
+    def isBestResponse(self, p1Strat, p2Strat):
+        """Checks whether p1Strat and p2Strat are best responses relative to each other
+
+        Args:
+            p1Strat (int): p1's strategy
+            p2Strat (int): p2's strategy
+        """
+        
+        p1BR = True
+        p2BR = True
+        
+        for i in range(self.players[0].numStrats):
+            if self.payoffMatrix[p1Strat][p2Strat][0] < self.payoffMatrix[i][p2Strat][0]:
+                p1BR = False
+        
+        for j in range(self.players[1].numStrats):
+            if self.payoffMatrix[p1Strat][p2Strat][1] < self.payoffMatrix[p1Strat][j][1]:
+                p2BR = False
+        return (p1BR, p2BR)
+        
     
     def printGame(self):
         for i in range(self.players[0].numStrats):
@@ -53,3 +74,32 @@ newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
 
 G.enterPayoffs(newPayoffs)
 G.printGame()
+
+strat1 = 0
+strat2 = 0
+result = G.isBestResponse(strat1, strat2)
+
+if result[0]:
+    print("YES")
+else:
+    print("NO")
+    
+if result[1]:
+    print("YES")
+else:
+    print("NO")
+    
+print()
+strat1 = 1
+strat2 = 1
+result = G.isBestResponse(strat1, strat2)
+
+if result[0]:
+    print("YES")
+else:
+    print("NO")
+    
+if result[1]:
+    print("YES")
+else:
+    print("NO")
