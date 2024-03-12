@@ -27,6 +27,21 @@ class simGame:
         
         self.numPlayers = numPlayers
         self.payoffMatrix = []
+        for i in range(self.players[0].numStrats):
+            row = []
+            for j in range(self.players[1].numStrats):
+                row.append([0, 0])
+            self.payoffMatrix.append(row)
+                
         return
     
+    def printGame(self):
+        for i in range(self.players[0].numStrats):
+            for j in range(self.players[1].numStrats):
+                for n in range(self.numPlayers):
+                    print(self.payoffMatrix[i][j][n], end="")
+                print(" ", end="")
+            print()
+            
 G = simGame(2, [2, 2])
+G.printGame()
