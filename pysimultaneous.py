@@ -17,18 +17,36 @@ class simGame:
     mixedEquilibria = []
     pureEquilibria = []
     
-    def __init__(self, numPlayers = 2, numStrats = [2, 2]):
-        for i in range(numPlayers):
-            p = Player(numStrats[i])
-            self.players.append(p)
+    def __init__(self, numPlayers = 2):
+        numStrats = [2 for i in range(numPlayers)]
+        self.players = [Player(numStrats[i]) for i in range(numPlayers)]
         
         self.numPlayers = numPlayers
         self.payoffMatrix = []
-        for i in range(self.players[0].numStrats):
-            row = []
-            for j in range(self.players[1].numStrats):
-                row.append([0, 0])
-            self.payoffMatrix.append(row)
+        if self.numPlayers < 3:
+            for i in range(self.players[0].numStrats):
+                row = []
+                for j in range(self.players[1].numStrats):
+                    outcome = []
+                    for x in self.players:
+                        outcome.append(0)
+                    row.append(outcome)                        
+                self.payoffMatrix.append(row)
+        else:
+            numMatrices = 1
+            for i in range(3, self.numPlayers):
+                numMatrices *= self.players[i].numStrats
+            for m in range(numMatrices):
+                matrix = []
+                for i in range(self.players[0].numStrats):
+                    row = []
+                    for j in range(self.players[1].numStrats):
+                        outcome = []
+                        for x in self.players:
+                            outcome.append(0)
+                        row.append(outcome)                 
+                    matrix.append(row)
+                self.payoffMatrix.append(matrix)
                 
         return
     
@@ -57,22 +75,37 @@ class simGame:
         
     
     def printGame(self):
-        for i in range(self.players[0].numStrats):
-            for j in range(self.players[1].numStrats):
-                for n in range(self.numPlayers):
-                    if n < self.numPlayers - 1:
-                        print(self.payoffMatrix[i][j][n], end=", ")
-                    else:
-                        print(self.payoffMatrix[i][j][n], end="")
-                print(" ", end="")
-            print()
+        """Prints the payoff matrix
+        """
+        if self.numPlayers < 3:
+            for i in range(self.players[0].numStrats):
+                for j in range(self.players[1].numStrats):
+                    for n in range(self.numPlayers):
+                        if n < self.numPlayers - 1:
+                            print(self.payoffMatrix[i][j][n], end=", ")
+                        else:
+                            print(self.payoffMatrix[i][j][n], end="")
+                    print(" ", end="")
+                print()
+        else:
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        for n in range(self.numPlayers):
+                            if n < self.numPlayers - 1:
+                                print(self.payoffMatrix[m][i][j][n], end=", ")
+                            else:
+                                print(self.payoffMatrix[m][i][j][n], end="")
+                        print(" ", end="")
+                    print()
+                print()
             
-G = simGame(2, [2, 2])
+G = simGame(3)
 G.printGame()
 
-newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
+# newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
 
-G.enterPayoffs(newPayoffs)
+# G.enterPayoffs(newPayoffs)
 G.printGame()
 
 strat1 = 0
