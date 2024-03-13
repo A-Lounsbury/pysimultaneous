@@ -9,6 +9,18 @@ class Node:
         self.bestResponse = False
         self.next = None
 
+    def append(self, payoff, bestResponse):
+        newNode = Node(payoff, bestResponse)
+        if self.head is None:
+            self.head = newNode
+            return
+        
+        curNode = self.head
+        while curNode.next:
+            curNode = curNode.next
+        
+        curNode.next = newNode
+
     def insertAtBeginning(self, payoff, bestResponse):
         newNode = Node(payoff, bestResponse)
         if self.head is None:
@@ -34,39 +46,6 @@ class Node:
                 curNode.next = newNode
             else:
                 print("Index not present")
-    
-    def append(self, payoff, bestResponse):
-        newNode = Node(payoff, bestResponse)
-        if self.head is None:
-            self.head = newNode
-            return
-        
-        curNode = self.head
-        while(curNode.next):
-            curNode = curNode.next
-        
-        curNode.next = newNode
-        
-    def updateNode(self, val, index):
-        curNode = self.head
-        pos = 0
-        if pos == index:
-            curNode.data = val
-        else:
-            while curNode != None and pos != index:
-                pos = pos + 1
-                curNode = curNode.next
-    
-            if curNode != None:
-                curNode.data = val
-            else:
-                print("Index not present")
-            
-    def removeFirstNode(self):
-        if self.head == None:
-            return
-        
-        self.head = self.head.next
         
     def pop(self):
         if self.head is None:
@@ -77,7 +56,16 @@ class Node:
             curNode = curNode.next
     
         curNode.next = None
-        
+                
+    def printLL(self):
+        curNode = self.head
+        while(curNode):
+            print(curNode.data)
+            curNode = curNode.next
+            
+    def printNode(self):
+        print(self.payoff)
+    
     def removeAtIndex(self, index):
         if self.head == None:
             return
@@ -96,11 +84,11 @@ class Node:
             else:
                 print("Index not present")
                 
-    def printLL(self):
-        curNode = self.head
-        while(curNode):
-            print(curNode.data)
-            curNode = curNode.next
+    def removeFirstNode(self):
+        if self.head == None:
+            return
+        
+        self.head = self.head.next
     
     def sizeOfLL(self):
         size = 0
@@ -112,6 +100,21 @@ class Node:
             return size
         else:
             return 0
+        
+    def updateNode(self, val, index):
+        curNode = self.head
+        pos = 0
+        if pos == index:
+            curNode.data = val
+        else:
+            while curNode != None and pos != index:
+                pos = pos + 1
+                curNode = curNode.next
+    
+            if curNode != None:
+                curNode.data = val
+            else:
+                print("Index not present")
 
 class Player:
     numStrats = -1
