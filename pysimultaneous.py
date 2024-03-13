@@ -243,9 +243,10 @@ class simGame:
                         self.payoffMatrix[m][i][j].printLL()
                         if j == self.players[1].numStrats - 1:
                             print()
+                        print()
                 print()
             
-G = simGame(2)
+G = simGame(3)
 print("G:",)
 G.printGame()
 
