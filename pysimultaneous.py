@@ -3,7 +3,7 @@
 # Date: 3/12/24
 # Description: a class for handling simultaneous games with n players, n >= 2
 
-class Node:
+class ListNode:
     head = None
     payoff = -1
     bestResponse = True
@@ -16,7 +16,7 @@ class Node:
         self.next = None
 
     def append(self, payoff, bestResponse):
-        newNode = Node(payoff, bestResponse)
+        newNode = ListNode(payoff, bestResponse)
         if self.head is None:
             self.head = newNode
             return
@@ -27,7 +27,7 @@ class Node:
         
         curNode.next = newNode
         
-    def getNode(self, index):
+    def getListNode(self, index):
         if self.head == None:
             return
  
@@ -49,7 +49,7 @@ class Node:
         return self.payoff
 
     def insertAtBeginning(self, payoff, bestResponse):
-        newNode = Node(payoff, bestResponse)
+        newNode = ListNode(payoff, bestResponse)
         if self.head is None:
             self.head = newNode
             return
@@ -58,7 +58,7 @@ class Node:
             self.head = newNode
             
     def insertAtIndex(self, data, index):
-        newNode = Node(data)
+        newNode = ListNode(data)
         curNode = self.head
         pos = 0
         if pos == index:
@@ -96,7 +96,7 @@ class Node:
             curNode = curNode.next
             i += 1
             
-    def printNode(self, end=""):
+    def printListNode(self, end=""):
         print(self.payoff, end=end)
     
     def removeAtIndex(self, index):
@@ -117,7 +117,9 @@ class Node:
             else:
                 print("Index not present")
                 
-    def removeFirstNode(self):
+    def decapitate(self):
+        """Removes the head ListNode
+        """
         if self.head == None:
             return
         
@@ -128,13 +130,13 @@ class Node:
         if(self.head):
             current_node = self.head
             while(current_node):
-                size = size+1
+                size = size + 1
                 current_node = current_node.next
             return size
         else:
             return 0
         
-    def updateNode(self, val, index):
+    def updateListNode(self, val, index):
         curNode = self.head
         pos = 0
         if pos == index:
@@ -173,7 +175,7 @@ class simGame:
             for i in range(self.players[0].numStrats):
                 row = []
                 for j in range(self.players[1].numStrats):
-                    outcome = Node(0, True)
+                    outcome = ListNode(0, True)
                     outcome.append(0, True)
                     row.append(outcome)                        
                 self.payoffMatrix.append(row)
@@ -186,7 +188,7 @@ class simGame:
                 for i in range(self.players[0].numStrats):
                     row = []
                     for j in range(self.players[1].numStrats):
-                        outcome = Node(0, True)
+                        outcome = ListNode(0, True)
                         for x in self.players:
                             outcome.append(0, True)
                         row.append(outcome)                 
@@ -209,21 +211,21 @@ class simGame:
         
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getNode(0).payoff < self.payoffMatrix[i][p2Strat].getNode(0).payoff:
+                if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
                     p1BR = False
             
             for j in range(self.players[1].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getNode(1).payoff < self.payoffMatrix[p1Strat][j].getNode(1).payoff:
+                if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getListNode(1).payoff:
                     p2BR = False
             return (p1BR, p2BR)
         else:
             for m in range(len(self.payoffMatrix)):
                 for i in range(self.players[0].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getNode(0).payoff < self.payoffMatrix[i][p2Strat].getNode(0).payoff:
+                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
                         p1BR = False
                 
                 for j in range(self.players[1].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getNode(1).payoff < self.payoffMatrix[p1Strat][j].getNode[1].payoff:
+                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getNode[1].payoff:
                         p2BR = False
     
     def printGame(self):
@@ -247,7 +249,7 @@ class simGame:
                 print()
             
 G = simGame(3)
-print("G:",)
+print("G:")
 G.printGame()
 
 # newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
