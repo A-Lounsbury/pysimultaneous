@@ -1,7 +1,117 @@
 # pysimultaneous.py
 # Author: Andrew Lounsbury
-# Date: 3/10/24
+# Date: 3/12/24
 # Description: a class for handling simultaneous games with n players, n >= 2
+
+class Node:
+    def __init__(self, payoff, bestResponse):
+        self.payoff = 0
+        self.bestResponse = False
+        self.next = None
+
+    def insertAtBeginning(self, payoff, bestResponse):
+        newNode = Node(payoff, bestResponse)
+        if self.head is None:
+            self.head = newNode
+            return
+        else:
+            newNode.next = self.head
+            self.head = newNode
+            
+    def insertAtIndex(self, data, index):
+        newNode = Node(data)
+        curNode = self.head
+        pos = 0
+        if pos == index:
+            self.insertAtBegin(data)
+        else:
+            while curNode != None and pos + 1 != index:
+                pos = pos + 1
+                curNode = curNode.next
+ 
+            if curNode != None:
+                newNode.next = curNode.next
+                curNode.next = newNode
+            else:
+                print("Index not present")
+    
+    def append(self, payoff, bestResponse):
+        newNode = Node(payoff, bestResponse)
+        if self.head is None:
+            self.head = newNode
+            return
+        
+        curNode = self.head
+        while(curNode.next):
+            curNode = curNode.next
+        
+        curNode.next = newNode
+        
+    def updateNode(self, val, index):
+        curNode = self.head
+        pos = 0
+        if pos == index:
+            curNode.data = val
+        else:
+            while curNode != None and pos != index:
+                pos = pos + 1
+                curNode = curNode.next
+    
+            if curNode != None:
+                curNode.data = val
+            else:
+                print("Index not present")
+            
+    def removeFirstNode(self):
+        if self.head == None:
+            return
+        
+        self.head = self.head.next
+        
+    def pop(self):
+        if self.head is None:
+            return
+    
+        curNode = self.head
+        while(curNode.next.next):
+            curNode = curNode.next
+    
+        curNode.next = None
+        
+    def removeAtIndex(self, index):
+        if self.head == None:
+            return
+ 
+        curNode = self.head
+        pos = 0
+        if pos == index:
+            self.remove_first_node()
+        else:
+            while(curNode != None and pos + 1 != index):
+                pos = pos + 1
+                curNode = curNode.next
+ 
+            if curNode != None:
+                curNode.next = curNode.next.next
+            else:
+                print("Index not present")
+                
+    def printLL(self):
+        curNode = self.head
+        while(curNode):
+            print(curNode.data)
+            curNode = curNode.next
+    
+    def sizeOfLL(self):
+        size = 0
+        if(self.head):
+            current_node = self.head
+            while(current_node):
+                size = size+1
+                current_node = current_node.next
+            return size
+        else:
+            return 0
 
 class Player:
     numStrats = -1
@@ -60,7 +170,6 @@ class simGame:
             p1Strat (int): p1's strategy
             p2Strat (int): p2's strategy
         """
-        
         p1BR = True
         p2BR = True
         
