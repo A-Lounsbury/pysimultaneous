@@ -156,6 +156,9 @@ class Player:
     
     def __init__(self,numStrats = 2):
         self.numStrats = numStrats
+    
+    def setNumStrats(numStrats):
+        self.numStrats = numStrats
 
 class simGame:
     numPlayers = -1
@@ -175,13 +178,15 @@ class simGame:
         self.payoffMatrix = []
         self.impartial = False
         if self.numPlayers < 3:
+            matrix = []
             for i in range(self.players[0].numStrats):
                 row = []
                 for j in range(self.players[1].numStrats):
                     outcome = ListNode(0, True)
                     outcome.append(0, True)
                     row.append(outcome)                        
-                self.payoffMatrix.append(row)
+                matrix.append(row)
+            self.payoffMatrix.append(matrix)
                 
         else:
             numMatrices = 1
@@ -279,7 +284,7 @@ class simGame:
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
                 for j in range(self.players[1].numStrats):
-                    self.payoffMatrix[i][j].printLL()
+                    self.payoffMatrix[0][i][j].printLL()
                     if j == self.players[1].numStrats - 1:
                         print()
             print()
@@ -293,27 +298,32 @@ class simGame:
                         print()
                 print()
                 
-    def removeStrategy(x, s):
+    def removeStrategy(self, x, s):
         """Removes strategy s from player x in the payoff matrix
 
         Args:
             x (int): index of the player
             s (int): index of the strategy
         """
-        if x == 0:
+        if x == 0: # x is player 1
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][s]
-                return
-        if x == 1:
+        if x == 1: # x is player 2
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][i][s]
-                return
-        else:
+        else: # x > 1
             numErased = 0
             product = 1
             m = 0
+            end = [0 for i in range(self.numPlayers)]
+            for y in range(self.numPlayers):
+                if y != x:
+                    end[y] = self.players[y].numStrats
+                else:
+                    end[y] = s
+            
             profile = [0 for i in range(self.numPlayers)]
-            while m < hash(end):
+            while m < self.hash(end):
                 profile = unhash(m)
                 profile[x] = s # at start of section
                 num = 1
@@ -323,6 +333,8 @@ class simGame:
                             num *= self.players[y].numStrats
                 elif x == self.numPlayers - 1 and self.numPlayers > 3:
                     num = self.players[x].numStrats
+                else:
+                    print("Error: unexpected values for x and numPlayers")
                 
                 while numErased < num:
                     del self.payoffMatrix[hash(profile)]
@@ -353,7 +365,7 @@ class simGame:
                                 
                         incremented = False
                         y = 2
-                        while not incremented and y < numPlayers:
+                        while not incremented and y < self.numPlayers:
                             if y != x:
                                 if profile[y] != self.players[y].numStrats - 1:
                                     profile[y] += 1
@@ -363,7 +375,7 @@ class simGame:
                     for y in range(2, x - 1):
                         product *= self.players[y].numStrats
                 m += product # move to the next one, which is the first in the next section
-        self.players[x].numStrats = players[x].numStrats - 1
+        self.players[x].numStrats -= 1
         
         if self.impartial:
             impartial = False        
@@ -400,13 +412,17 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
-G = simGame(3)
+G = simGame(2)
 print("G:")
 G.printGame()
 
-print("hash:", G.hash([1, 1, 0]))
+# print("hash:", G.hash([1, 1, 0]))
+# print("unhash:", G.unhash(0))
 
-print("unhash:", G.unhash(0))
+G.removeStrategy(0, 1)
+
+print("G after:")
+G.printGame()
 
 # newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
 
