@@ -153,12 +153,11 @@ class ListNode:
 
 class Player:
     numStrats = -1
+    rationality = -1
     
-    def __init__(self,numStrats = 2):
+    def __init__(self,numStrats = 2, rationality = 0):
         self.numStrats = numStrats
-    
-    def setNumStrats(numStrats):
-        self.numStrats = numStrats
+        self.rationality = rationality
 
 class simGame:
     numPlayers = -1
@@ -172,7 +171,8 @@ class simGame:
     
     def __init__(self, numPlayers = 2):
         numStrats = [2 for i in range(numPlayers)]
-        self.players = [Player(numStrats[i]) for i in range(numPlayers)]
+        rationalities = [0 for i in range(numPlayers)]
+        self.players = [Player(numStrats[i], rationalities[0]) for i in range(numPlayers)]
         
         self.numPlayers = numPlayers
         self.payoffMatrix = []
@@ -379,7 +379,47 @@ class simGame:
         
         if self.impartial:
             impartial = False        
-     
+    
+    def saveToFile(self, fileName):
+        """Saves the data of a game to a text file
+
+        Args:
+            fileName (str): the file name
+        """
+        with open(fileName, 'w') as file:
+            file.write(str(self.numPlayers) + "\n")
+            
+            # write numStrats to file
+            for x in range(self.numPlayers):
+                file.write(str(self.players[x].numStrats))
+                if x < self.numPlayers - 1:
+                    file.write(" ")
+            file.write("\n")
+            
+            # write rationalities to the file
+            for x in range(self.numPlayers):
+                file.write(str(self.players[x].rationality))
+                if x < self.numPlayers - 1:
+                    file.write(" ")
+            file.write("\n")
+            
+            # write payoffMatrix to file
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        curList = self.payoffMatrix[m][i][j]
+                        for x in range(self.numPlayers):
+                            file.write(str(curList.getListNode(x).payoff))
+                            if x < self.numPlayers - 1:
+                                file.write(" ")
+                        if j < self.players[1].numStrats - 1:
+                            file.write(" ")
+                    if i < self.players[0].numStrats - 1:
+                        file.write("\n")
+                if m < len(self.payoffMatrix) - 1:
+                    file.write("\n\n")
+            print("Saved to " + fileName + ".\n")
+    
     def unhash(self, m):
         """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index
 
@@ -415,6 +455,8 @@ class simGame:
 G = simGame(2)
 print("G:")
 G.printGame()
+
+G.saveToFile("save.txt")
 
 # print("hash:", G.hash([1, 1, 0]))
 # print("unhash:", G.unhash(0))
