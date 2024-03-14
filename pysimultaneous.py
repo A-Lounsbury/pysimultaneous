@@ -365,18 +365,18 @@ class simGame:
             if self.numPlayers > 2:
                 for x in range(2, self.numPlayers):
                     size *= self.players[x].numStrats
-            self.payoffMatrix = [None] * size
+            self.payoffMatrix += [None] * (size - len(self.payoffMatrix))
             
             size = 1
             if self.numPlayers > 2:
                 size = 4 ** (self.numPlayers - 2)
-            self.kMatrix = [None] * size
+            self.kMatrix += [None] * (size - len(self.kMatrix))
             
             # creating/deleting entries and reading values
             for m in range(len(self.payoffMatrix)):
-                self.payoffMatrix[m] = [None] * int(self.players[0].numStrats)
+                self.payoffMatrix[m] += [None] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
                 for i in range(self.players[0].numStrats):
-                    self.payoffMatrix[m][i] = [None] * self.players[1].numStrats
+                    self.payoffMatrix[m][i] += [None] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
                     # Reading in the next row of payoffs
                     payoffs = file.readline().split(" ")
                     for payoff in payoffs:
@@ -400,9 +400,10 @@ class simGame:
                                 curList.appendNode(payoffs[x], False)
             if addMoreOutcomesPast2:
                 for m in range((len(self.kMatrix))):
-                    self.kMatrix[m] = [None] * 4
+                    self.kMatrix[m] += [None] * (4 - len(self.kMatrix[m]))
                     for i in range(4):
                         self.kMatrix[m][i] = [None] * 4
+                        self.kMatrix[m][i] += [None] * (4 - len(self.kMatrix[m][i]))
                         for j in range(4):
                             myList = [-1 for l in range(self.numPlayers)]
                             kMatrix[m][i][j] = myList
@@ -566,48 +567,6 @@ G = simGame(2)
 print("G:")
 G.printGame()
 
-G.readFromFile("fm.txt")
+G.readFromFile("text files/freeMoney.txt")
 print("G after readFromFile:")
-G.printGame
-
-# print("hash:", G.hash([1, 1, 0]))
-# print("unhash:", G.unhash(0))
-
-G.removeStrategy(0, 1)
-
-print("G after:")
 G.printGame()
-
-# newPayoffs = [[[-3, -3], [0, -5]], [[-5, 0], [-1, -1]]]
-
-# G.enterPayoffs(newPayoffs)
-# G.printGame()
-
-# strat1 = 0
-# strat2 = 0
-# result = G.isBestResponse(strat1, strat2)
-
-# if result[0]:
-#     print("YES")
-# else:
-#     print("NO")
-    
-# if result[1]:
-#     print("YES")
-# else:
-#     print("NO")
-    
-# print()
-# strat1 = 1
-# strat2 = 1
-# result = G.isBestResponse(strat1, strat2)
-
-# if result[0]:
-#     print("YES")
-# else:
-#     print("NO")
-    
-# if result[1]:
-#     print("YES")
-# else:
-#     print("NO")
