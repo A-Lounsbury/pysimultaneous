@@ -302,14 +302,71 @@ class simGame:
         """
         if x == 0:
             for m in range(len(self.payoffMatrix)):
+                del self.payoffMatrix[m][s]
                 return
         if x == 1:
             for m in range(len(self.payoffMatrix)):
+                del self.payoffMatrix[m][i][s]
                 return
         else:
             numErased = 0
             product = 1
             m = 0
+            profile = [0 for i in range(self.numPlayers)]
+            while m < hash(end):
+                profile = unhash(m)
+                profile[x] = s # at start of section
+                num = 1
+                if x < self.numPlayers - 1:
+                    for y in range(2, self.numPlayers):
+                        if y != x:
+                            num *= self.players[y].numStrats
+                elif x == self.numPlayers - 1 and self.numPlayers > 3:
+                    num = self.players[x].numStrats
+                
+                while numErased < num:
+                    del self.payoffMatrix[hash(profile)]
+                    numErased += 1
+                    
+                    # last player's matrices are all lined up; others' must be found
+                    if x < self.numPlayers - 1:
+                        print()
+                        if profile[2] > 0: # simply decrement first number
+                            profile[2] -= 1
+                        else: # go through each succeeding number
+                            y = 2
+                            foundNonzero = False
+                            while True:
+                                profile[y] = self.players[y].numStrats - 1
+                                # not last number and next number is nonzero
+                                if y != self.numPlayers - 1 and profile[y + 1] != 0:
+                                    profile[y + 1] -= 1
+                                    foundNonzero = True
+                                elif y != self.numPlayers - 1 and profile[y + 1] == 0:
+                                    profile[y] = self.players[y].numStrats - 1
+                                elif y == self.numPlayers - 1:
+                                    profile[y] -= 1
+                                y += 1
+                                
+                                if y >= self.numPlayers or profile[y] != 0 or foundNonzero:
+                                    break
+                                
+                        incremented = False
+                        y = 2
+                        while not incremented and y < numPlayers:
+                            if y != x:
+                                if profile[y] != self.players[y].numStrats - 1:
+                                    profile[y] += 1
+                                    incremented = True
+                            y += 1
+                if x > 2 and x < self.numPlayers - 1 and product == 1:
+                    for y in range(2, x - 1):
+                        product *= self.players[y].numStrats
+                m += product # move to the next one, which is the first in the next section
+        self.players[x].numStrats = players[x].numStrats - 1
+        
+        if self.impartial:
+            impartial = False        
      
     def unhash(self, m):
         """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index
