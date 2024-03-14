@@ -164,6 +164,8 @@ class simGame:
     payoffMatrix = []
     players = []
     
+    kMatrix = []
+    
     mixedEquilibria = []
     pureEquilibria = []
     
@@ -297,7 +299,115 @@ class simGame:
                             print()
                         print()
                 print()
+
+    def readFromFile(self, fileName):
+        addMoreOutcomesPast2 = False # kMatrix
+        nP = -1 # numPlayers
+        nS = -1 # numStrats
+        r = -1 # rationality
+        oldNumPlayers = -1
+        oldNumStrats = [-1 for i in range(self.numPlayers)]
+        oldSize = -1
+        curList = []
+        
+        with open(fileName, 'r') as file:
+            oldNumPlayers = self.numPlayers
+            
+            for x in range(self.numPlayers):
+                oldNumStrats[x] = self.players[x].numStrats
                 
+            oldSize = len(self.payoffMatrix)
+            
+            # reading numPlayers
+            nP = file.readline()
+            self.numPlayers = int(nP)
+            
+            # reading numStrats for old players
+            if oldNumPlayers <= self.numPlayers:
+                nS = file.readline().split(" ")
+                # Getting rationalities
+                rats = file.readline().split(" ")
+                for rat in rats:
+                    rat = rat.rstrip()
+                
+                for n in nS:
+                    n = n.rstrip()
+                for x in range(oldNumPlayers):
+                    self.players[x].numStrats = int(nS[x])
+                    self.players[x].rationality = int(rats[x])
+            else:
+                nS = file.readline().split(" ")
+                # Getting rationalities
+                rats = file.readline.split(" ")
+                for rat in rats:
+                    rat = int(rat.rstrip())
+                    
+                for n in nS:
+                    n = int(n.rstrip())
+                for x in range(numPlayers):
+                    self.players[x].numStrats = int(nS[x])
+                    self.players[x].rationality = rats[x]
+            
+            """
+			add new players if there are more
+			resizing payoffMatrix and kMatrix
+			increase the size of kStrategy vectors 
+            """
+            if oldNumPlayers != self.numPlayers:
+                if oldNumPLayers < numPlayers:
+                    addMoreOutcomesPast2 = True
+                # Create new players and read rest of numStrats
+                for x in range(oldNumPlayers, self.numPlayers):
+                    p = Player(int(nS[x]), rats[x])
+                    
+            # new matrices added to the end
+            size = 1
+            if self.numPlayers > 2:
+                for x in range(2, self.numPlayers):
+                    size *= self.players[x].numStrats
+            self.payoffMatrix = [None] * size
+            
+            size = 1
+            if self.numPlayers > 2:
+                size = 4 ** (self.numPlayers - 2)
+            self.kMatrix = [None] * size
+            
+            # creating/deleting entries and reading values
+            for m in range(len(self.payoffMatrix)):
+                self.payoffMatrix[m] = [None] * int(self.players[0].numStrats)
+                for i in range(self.players[0].numStrats):
+                    self.payoffMatrix[m][i] = [None] * self.players[1].numStrats
+                    # Reading in the next row of payoffs
+                    payoffs = file.readline().split(" ")
+                    for payoff in payoffs:
+                        payoff = int(payoff.rstrip())
+                    
+                    for j in range(self.players[1].numStrats):
+                        # Create new list if needed
+                        if not self.payoffMatrix[m][i][j]:
+                            newList = ListNode(0, False)
+                            self.payoffMatrix[m][i][j] = newList
+                        curList = self.payoffMatrix[m][i][j]
+                        while curList.sizeOfLL() > self.numPlayers:
+                            # Deleting
+                            curList.removeAtIndex(curList.sizeOfLL() - 1)
+                        
+                        for x in range(self.numPlayers):
+                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old payoff
+                                curList.payoff = payoffs[x]
+                            else: # Everything is new
+                                # Adding
+                                curList.appendNode(payoffs[x], False)
+            if addMoreOutcomesPast2:
+                for m in range((len(self.kMatrix))):
+                    self.kMatrix[m] = [None] * 4
+                    for i in range(4):
+                        self.kMatrix[m][i] = [None] * 4
+                        for j in range(4):
+                            myList = [-1 for l in range(self.numPlayers)]
+                            kMatrix[m][i][j] = myList
+        print("Done reading from " + fileName)
+
     def removeStrategy(self, x, s):
         """Removes strategy s from player x in the payoff matrix
 
@@ -456,7 +566,9 @@ G = simGame(2)
 print("G:")
 G.printGame()
 
-G.saveToFile("save.txt")
+G.readFromFile("fm.txt")
+print("G after readFromFile:")
+G.printGame
 
 # print("hash:", G.hash([1, 1, 0]))
 # print("unhash:", G.unhash(0))
