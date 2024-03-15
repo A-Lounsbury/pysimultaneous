@@ -365,18 +365,30 @@ class simGame:
             if self.numPlayers > 2:
                 for x in range(2, self.numPlayers):
                     size *= self.players[x].numStrats
-            self.payoffMatrix += [None] * (size - len(self.payoffMatrix))
+            if size > len(self.payoffMatrix):
+                self.payoffMatrix += [None] * (size - len(self.payoffMatrix))
+            else:
+                self.payoffMatrix = self.payoffMatrix[:size]
             
             size = 1
             if self.numPlayers > 2:
                 size = 4 ** (self.numPlayers - 2)
-            self.kMatrix += [None] * (size - len(self.kMatrix))
+            if size > len(self.kMatrix):
+                self.kMatrix += [None] * (size - len(self.kMatrix))
+            else:
+                self.kMatrix = self.kMatrix[:size]
             
             # creating/deleting entries and reading values
             for m in range(len(self.payoffMatrix)):
-                self.payoffMatrix[m] += [None] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
+                if self.players[0].numStrats > len(self.payoffMatrix[m]):
+                    self.payoffMatrix[m] += [None] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
+                else:
+                    self.payoffMatrix[m] = self.payoffMatrix[m][:self.players[0].numStrats]
                 for i in range(self.players[0].numStrats):
-                    self.payoffMatrix[m][i] += [None] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
+                    if self.players[1].numStrats > len(self.payoffMatrix[m][i]):
+                        self.payoffMatrix[m][i] += [None] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
+                    else:
+                        self.payoffMatrix[m][i] = self.payoffMatrix[m][i][:self.players[1].numStrats]
                     # Reading in the next row of payoffs
                     payoffs = file.readline().split(" ")
                     for payoff in payoffs:
@@ -388,22 +400,34 @@ class simGame:
                             newList = ListNode(0, False)
                             self.payoffMatrix[m][i][j] = newList
                         curList = self.payoffMatrix[m][i][j]
+                        # print("LIST: \t", end="")
+                        # curList.printLL()
                         while curList.sizeOfLL() > self.numPlayers:
                             # Deleting
                             curList.removeAtIndex(curList.sizeOfLL() - 1)
                         
                         for x in range(self.numPlayers):
-                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old payoff
+                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old 
+                                print("\nPAYOFF:", payoffs[x])
                                 curList.payoff = payoffs[x]
+                                self.payoffMatrix[m][i][j].payoff = payoffs[x]
+                                print("val: ", self.payoffMatrix[m][i][j].payoff)
+                                print("AGAIN: \t", end="")
+                                curList.printLL()
                             else: # Everything is new
                                 # Adding
                                 curList.appendNode(payoffs[x], False)
             if addMoreOutcomesPast2:
                 for m in range((len(self.kMatrix))):
-                    self.kMatrix[m] += [None] * (4 - len(self.kMatrix[m]))
+                    if 4 > len(self.kMatrix[m]):
+                        self.kMatrix[m] += [None] * (4 - len(self.kMatrix[m]))
+                    else:
+                        self.kMatrix[m] = self.kMatrix[m][:4]
                     for i in range(4):
-                        self.kMatrix[m][i] = [None] * 4
-                        self.kMatrix[m][i] += [None] * (4 - len(self.kMatrix[m][i]))
+                        if 4 > len(self.kMatrix[m]):
+                            self.kMatrix[m][i] += [None] * (4 - len(self.kMatrix[m][i]))
+                        else:
+                            self.kMatrix[m][i] = self.kMatrix[m][i][:4]
                         for j in range(4):
                             myList = [-1 for l in range(self.numPlayers)]
                             kMatrix[m][i][j] = myList
