@@ -159,22 +159,35 @@ class Player:
         self.numStrats = numStrats
         self.rationality = rationality
 
-class simGame:
+class simGame:    
+    kMatrix = []
+    impartial = False
+    mixedEquilibria = []
     numPlayers = -1
     payoffMatrix = []
     players = []
-    
-    kMatrix = []
-    
-    mixedEquilibria = []
     pureEquilibria = []
-    
-    impartial = False
+    strategyNames = []
     
     def __init__(self, numPlayers = 2):
         numStrats = [2 for i in range(numPlayers)]
         rationalities = [0 for i in range(numPlayers)]
         self.players = [Player(numStrats[i], rationalities[0]) for i in range(numPlayers)]
+        
+        # Initializing strategy names
+        if self.players[0].numStrats < 3:
+            self.strategyNames.append(["U", "D"])
+        else:
+            self.strategyNames.append(["U"] + ["M" + str(i) for i in range(1, self.players[0].numStrats)] + ["D"])
+        if self.players[1].numStrats < 3:
+            self.strategyNames.append(["L", "R"])
+        else:
+            self.strategyNames.append(["L"] + ["C" + str(i) for i in range(self.players[0].numStrats)] + ["R"])
+        for x in range(2, self.numPlayers):
+            if self.players[x].numStrats < 3:
+                self.strategyNames.append(["L(" + str(x) + ")", "R(" + str(x) + ")"])
+            else: 
+                self.strategyNames.append(["L(" + str(x) + ")"] + ["C(" + str(x) + ", " + str(i) + ")" for i in range(self.players[0].numStrats)] + ["R(" + str(x) + ")"])
         
         self.numPlayers = numPlayers
         self.payoffMatrix = []
@@ -271,7 +284,7 @@ class simGame:
         else: # c_2 + sum_{x=3}^{nP} nS_2 *...* nS_{x-1} * c_x
             if self.numPlayers > 3:
                 product = 0
-                for x in range(3, numPlayers):
+                for x in range(3, self.numPlayers):
                     product = 1
                     if profile[x] > 0:
                         for y in range(2, x - 1):
@@ -349,8 +362,8 @@ class simGame:
                     self.players[x].rationality = rats[x]
             
             """
-			add new players if there are more
-			resizing payoffMatrix and kMatrix
+			add new players if there are more,
+			resizing payoffMatrix and kMatrix,
 			increase the size of kStrategy vectors 
             """
             if oldNumPlayers != self.numPlayers:
@@ -590,6 +603,11 @@ class simGame:
 G = simGame(2)
 print("G:")
 G.printGame()
+
+for x in range(G.numPlayers):
+    for s in range(G.players[x].numStrats):
+        print(G.strategyNames[x][s])
+    print()
 
 G.readFromFile("text files/freeMoney.txt")
 print("G after readFromFile:")
