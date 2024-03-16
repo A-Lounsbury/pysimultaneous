@@ -98,17 +98,15 @@ class simGame:
             for i in range(self.players[0].numStrats):
                 if self.payoffMatrix[0][p1Strat][p2Strat] < self.payoffMatrix[0][i][p2Strat]:
                     p1BR = False
-            
             for j in range(self.players[1].numStrats):
                 if self.payoffMatrix[1][p1Strat][p2Strat] < self.payoffMatrix[1][p1Strat][j]:
                     p2BR = False
             return (p1BR, p2BR)
-        else:
+        else: # FIXME
             for m in range(self.payoffMatrix[0].size):
                 for i in range(self.players[0].numStrats):
                     if self.payoffMatrix[0][m][p1Strat][p2Strat] < self.payoffMatrix[0][m][i][p2Strat]:
                         p1BR = False
-                
                 for j in range(self.players[1].numStrats):
                     if self.payoffMatrix[1][m][p1Strat][p2Strat] < self.payoffMatrix[1][m][p1Strat][j]:
                         p2BR = False
@@ -215,6 +213,7 @@ class simGame:
                     p = Player(int(nS[x]), rats[x])
                     players.append(p)
                     
+            # FIXME
             # new matrices added to the end
             size = 1
             if self.numPlayers > 2:
@@ -233,6 +232,7 @@ class simGame:
             else:
                 self.kMatrix = self.kMatrix[:size]
             
+            # FIXME
             # creating/deleting entries and reading values
             for m in range(len(self.payoffMatrix)):
                 if self.players[0].numStrats > len(self.payoffMatrix[m]):
@@ -267,6 +267,7 @@ class simGame:
                             else: # Everything is new
                                 # Adding
                                 curList.appendNode(int(payoffs[x]), False)
+            
             if addMoreOutcomesPast2:
                 for m in range((len(self.kMatrix))):
                     if 4 > len(self.kMatrix[m]):
@@ -388,6 +389,7 @@ class simGame:
                     file.write(" ")
             file.write("\n")
             
+            # FIXME
             # write payoffMatrix to file
             for m in range(len(self.payoffMatrix)):
                 for i in range(self.players[0].numStrats):
