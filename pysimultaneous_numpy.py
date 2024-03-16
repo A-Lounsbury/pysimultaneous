@@ -206,32 +206,18 @@ class simGame:
         self.numPlayers = numPlayers
         self.payoffMatrix = []
         self.impartial = False
+        
+        # Creating payoff matrix
         if self.numPlayers < 3:
-            matrix = []
-            for i in range(self.players[0].numStrats):
-                row = []
-                for j in range(self.players[1].numStrats):
-                    outcome = ListNode(0, True)
-                    outcome.append(0, True)
-                    row.append(outcome)                        
-                matrix.append(row)
-            self.payoffMatrix.append(matrix)
-                
+            dimensions = tuple([self.players[x].numStrats for x in range(self.numPlayers)])
         else:
-            numMatrices = 1
-            for i in range(3, self.numPlayers):
-                numMatrices *= self.players[i].numStrats
-            for m in range(numMatrices):
-                matrix = []
-                for i in range(self.players[0].numStrats):
-                    row = []
-                    for j in range(self.players[1].numStrats):
-                        outcome = ListNode(0, True)
-                        for x in self.players:
-                            outcome.append(0, True)
-                        row.append(outcome)                 
-                    matrix.append(row)
-                self.payoffMatrix.append(matrix)
+            product = 1
+            for x in range(2, self.numPlayers):
+                product *= self.players[x].numStrats
+            dimensions = tuple([product] + [self.players[x].numStrats for x in range(self.numPlayers)])
+            
+        for x in range(self.numPlayers):
+            self.payoffMatrix.append(np.zeros(dimensions))
         return
     
     def computeImpartiality(self):
@@ -311,21 +297,11 @@ class simGame:
         """Prints the payoff matrix
         """
         if self.numPlayers < 3:
-            for i in range(self.players[0].numStrats):
-                for j in range(self.players[1].numStrats):
-                    self.payoffMatrix[0][i][j].printLL()
-                    if j == self.players[1].numStrats - 1:
-                        print()
-            print()
+            print(self.payoffMatrix[0])
         else:
-            for m in range(len(self.payoffMatrix)):
-                for i in range(self.players[0].numStrats):
-                    for j in range(self.players[1].numStrats):
-                        self.payoffMatrix[m][i][j].printLL()
-                        if j == self.players[1].numStrats - 1:
-                            print()
-                        print()
-                print()
+            for x in range(len(self.numPlayers)):
+                print(payoffMatrix[x])
+                
 
     def readFromFile(self, fileName):
         addMoreOutcomesPast2 = False # kMatrix
@@ -612,7 +588,4 @@ class simGame:
 
 G = simGame(2)
 print("G:")
-G.printGame()
-
-G.readFromFile("text files/freeMoney.txt")
 G.printGame()
