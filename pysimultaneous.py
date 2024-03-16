@@ -421,9 +421,9 @@ class simGame:
                     payoffs = file.readline().split(" ")
                     for payoff in payoffs:
                         payoff = int(payoff.rstrip())
+                    groupedPayoffs = [payoffs[i:i + self.numPlayers] for i in range(0, len(payoffs), self.numPlayers)]
                     
                     for j in range(self.players[1].numStrats):
-                        print("j:", j)
                         # Create new list if needed
                         if not self.payoffMatrix[m][i][j]:
                             newList = ListNode(0, False)
@@ -435,21 +435,7 @@ class simGame:
                         
                         for x in range(self.numPlayers):
                             if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old payoff
-                                print("\tcur payoff:", payoffs[x])
-                                # Output: 
-                                    # 1, 0 1, 0
-                                    # 0, 0 0, 0
-                                curList.payoff = int(payoffs[x])
-                                # curList.getListNode(x).payoff = int(payoffs[x])
-                                
-                                # Output: 
-                                    # 1, 1 1, 1
-                                    # 0, 0 0, 0
-                                # curList.updateListNode(int(payoffs[x]), x)
-                                
-                                # Expected output: 
-                                    # 1, 1 0, 0
-                                    # 0, 0 0, 0
+                                curList.updateListNode(int(groupedPayoffs[j][x]), x) # inserting payoff value
                             else: # Everything is new
                                 # Adding
                                 curList.appendNode(int(payoffs[x]), False)
