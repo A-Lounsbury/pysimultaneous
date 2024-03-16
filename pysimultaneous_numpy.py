@@ -512,5 +512,5 @@ G = simGame(2)
 print("G:")
 G.print()
 
-G.readFromFile("text files/together2.txt")
-G.print()
+# G.readFromFile("text files/together2.txt")
+# G.print()
