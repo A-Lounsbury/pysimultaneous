@@ -84,32 +84,39 @@ class simGame:
     def enterPayoffs(self, payoffs = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]):
         self.payoffMatrix = payoffs
         
-    def isBestResponse(self, p1Strat, p2Strat):
+    # FIXME
+    def isBestResponse(self, profile):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
 
         Args:
             p1Strat (int): p1's strategy
             p2Strat (int): p2's strategy
         """
-        p1BR = True
-        p2BR = True
+        br = [True for x in range(self.numPlayers)]
         
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
-                if self.payoffMatrix[0][p1Strat][p2Strat] < self.payoffMatrix[0][i][p2Strat]:
-                    p1BR = False
+                if self.payoffMatrix[0][profile[0]][profile[1]] < self.payoffMatrix[0][i][profile[1]]:
+                    br[0] = False
             for j in range(self.players[1].numStrats):
-                if self.payoffMatrix[1][p1Strat][p2Strat] < self.payoffMatrix[1][p1Strat][j]:
-                    p2BR = False
-            return (p1BR, p2BR)
-        else: # FIXME
-            for m in range(self.payoffMatrix[0].size):
-                for i in range(self.players[0].numStrats):
-                    if self.payoffMatrix[0][m][p1Strat][p2Strat] < self.payoffMatrix[0][m][i][p2Strat]:
-                        p1BR = False
-                for j in range(self.players[1].numStrats):
-                    if self.payoffMatrix[1][m][p1Strat][p2Strat] < self.payoffMatrix[1][m][p1Strat][j]:
-                        p2BR = False
+                if self.payoffMatrix[1][profile[0]][profile[1]] < self.payoffMatrix[1][profile[0]][j]:
+                    br[1] = False
+        else:
+            for x in range(self.numPlayers):
+                if x < 2:
+                    for i in range(self.players[0].numStrats):
+                        if self.payoffMatrix[0][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[0][self.hash(profile)][i][profile[1]]:
+                            br[0] = False
+                    for j in range(self.players[1].numStrats):
+                        if self.payoffMatrix[1][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[1][self.hash(profile)][profile[0]][j]:
+                            br[1] = False
+                else:
+                    for m in range(self.payoffMatrix[0].shape[0]):
+                        compProfile = profile # "compare profile"
+                        compProfile[x] = m
+                        if self.payoffMatrix[x][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[x][self.hash(compProfile)][profile[1]][profile[2]]:
+                            br[x] = False
+        return br
                         
     def hash(self, profile):
         """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence
@@ -445,5 +452,5 @@ G.printGame()
 
 print(G.payoffMatrix[0][0][0][0])
 
-results = G.isBestResponse(0, 0)
+results = G.isBestResponse([0, 0, 0])
 print(results)
