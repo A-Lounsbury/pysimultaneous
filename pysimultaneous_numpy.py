@@ -65,7 +65,8 @@ class simGame:
             product = 1
             for x in range(2, self.numPlayers):
                 product *= self.players[x].numStrats
-            dimensions = tuple([product] + [self.players[x].numStrats for x in range(self.numPlayers)])
+            dimensions = tuple([product] + [self.players[x].numStrats for x in range(2)])
+            print("dimensions: ", dimensions)
             
         for x in range(self.numPlayers):
             self.payoffMatrix.append(np.zeros(dimensions))
@@ -150,8 +151,9 @@ class simGame:
         if self.numPlayers < 3:
             print(self.payoffMatrix[0])
         else:
-            for x in range(len(self.numPlayers)):
-                print(payoffMatrix[x])
+            for x in range(self.numPlayers):
+                print(self.payoffMatrix[x])
+                print()
                 
 
     def readFromFile(self, fileName):
@@ -437,6 +439,6 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
-G = simGame(2)
+G = simGame(3)
 print("G:")
 G.printGame()
