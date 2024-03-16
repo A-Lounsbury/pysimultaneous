@@ -83,8 +83,7 @@ class simGame:
     
     def enterPayoffs(self, payoffs = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]):
         self.payoffMatrix = payoffs
-        
-    # FIXME
+    
     def isBestResponse(self, profile):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
 
@@ -373,7 +372,7 @@ class simGame:
         if self.impartial:
             impartial = False        
     
-    def saveToFile(self, fileName):
+    def saveToFile(self, fileName, together=True):
         """Saves the data of a game to a text file
 
         Args:
@@ -381,37 +380,51 @@ class simGame:
         """
         with open(fileName, 'w') as file:
             file.write(str(self.numPlayers) + "\n")
-            
-            # write numStrats to file
-            for x in range(self.numPlayers):
-                file.write(str(self.players[x].numStrats))
-                if x < self.numPlayers - 1:
-                    file.write(" ")
-            file.write("\n")
-            
-            # write rationalities to the file
-            for x in range(self.numPlayers):
-                file.write(str(self.players[x].rationality))
-                if x < self.numPlayers - 1:
-                    file.write(" ")
-            file.write("\n")
-            
-            # FIXME
-            # write payoffMatrix to file
-            for m in range(len(self.payoffMatrix)):
-                for i in range(self.players[0].numStrats):
-                    for j in range(self.players[1].numStrats):
-                        curList = self.payoffMatrix[m][i][j]
-                        for x in range(self.numPlayers):
-                            file.write(str(curList.getListNode(x).payoff))
-                            if x < self.numPlayers - 1:
+            if together:
+                # write numStrats to file
+                for x in range(self.numPlayers):
+                    file.write(str(self.players[x].numStrats))
+                    if x < self.numPlayers - 1:
+                        file.write(" ")
+                file.write("\n")
+                
+                # write rationalities to the file
+                for x in range(self.numPlayers):
+                    file.write(str(self.players[x].rationality))
+                    if x < self.numPlayers - 1:
+                        file.write(" ")
+                file.write("\n")
+                
+                # FIXME
+                # write payoffMatrix to file
+                if self.numPlayers < 3:
+                    for i in range(self.players[0].numStrats):
+                        for j in range(self.players[1].numStrats):
+                            for x in range(self.numPlayers):
+                                file.write(str(self.payoffMatrix[x][i][j]))
+                                if x < self.numPlayers - 1:
+                                    file.write(" ")
+                            if j < self.players[1].numStrats - 1:
                                 file.write(" ")
-                        if j < self.players[1].numStrats - 1:
-                            file.write(" ")
-                    if i < self.players[0].numStrats - 1:
-                        file.write("\n")
-                if m < len(self.payoffMatrix) - 1:
-                    file.write("\n\n")
+                        if i < self.players[0].numStrats - 1:
+                            file.write("\n")
+                else: 
+                    for m in range(self.payoffMatrix[0].shape[0]):
+                        print("m:", m)
+                        for i in range(self.players[0].numStrats):
+                            for j in range(self.players[1].numStrats):
+                                for x in range(self.numPlayers):
+                                    file.write(str(self.payoffMatrix[x][m][i][j]))
+                                    if x < self.numPlayers - 1:
+                                        file.write(" ")
+                                if j < self.players[1].numStrats - 1:
+                                    file.write(" ")
+                            if i < self.players[0].numStrats - 1:
+                                file.write("\n")
+                        if m < self.payoffMatrix[0].shape[0] - 1:
+                            file.write("\n\n")
+            else: # separate
+                return
             print("Saved to " + fileName + ".\n")
     
     def unhash(self, m):
@@ -450,7 +463,4 @@ G = simGame(3)
 print("G:")
 G.printGame()
 
-print(G.payoffMatrix[0][0][0][0])
-
-results = G.isBestResponse([0, 0, 0])
-print(results)
+G.saveToFile("file.txt")
