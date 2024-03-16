@@ -87,14 +87,15 @@ class ListNode:
     def printLL(self):
         curNode = self.head
         size = self.sizeOfLL()
-        i = 0
+        x = 0
         while(curNode):
-            if i < size - 1:
+            if x < size - 1:
                 print(curNode.payoff, end=", ")
             else:
                 print(curNode.payoff, end=" ")
+            # print("PRINTLL: ", curNode.payoff)
             curNode = curNode.next
-            i += 1
+            x += 1
             
     def printListNode(self, end=""):
         print(self.payoff, end=end)
@@ -162,17 +163,29 @@ class Player:
 class simGame:    
     kMatrix = []
     impartial = False
+    kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
+    kStrategies = [[] for i in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
     mixedEquilibria = []
     numPlayers = -1
     payoffMatrix = []
     players = []
     pureEquilibria = []
+    rationalityProbabilities = [0.0 for i in range(4)] # probability a player is L_i, i = 0, 1, 2, 3
     strategyNames = []
     
     def __init__(self, numPlayers = 2):
         numStrats = [2 for i in range(numPlayers)]
         rationalities = [0 for i in range(numPlayers)]
         self.players = [Player(numStrats[i], rationalities[0]) for i in range(numPlayers)]
+        
+        # Creating kStrategies' 4 arrays of lists of size numPlayers and setting rationalityProbabilities
+        for r in range(4):
+            # resizing self.kStrategies[r]
+            if numPlayers > len(self.kStrategies[r]):
+                self.kStrategies[r] += [None] * (numPlayers - len(self.kStrategies[r]))
+            else:
+                self.kStrategies[r] = self.kStrategies[r][:numPlayers]
+            self.rationalityProbabilities[r] = 0.0
         
         # Initializing strategy names
         if self.players[0].numStrats < 3:
@@ -280,7 +293,7 @@ class simGame:
         if self.impartial:
             for x in range(3, self.numPlayers):
                 if profile.at(x) > 0:
-                    num += self.players[0]**(x - 2) * self.profile[x]
+                    num += self.players[0] ** (x - 2) * self.profile[x]
         else: # c_2 + sum_{x=3}^{nP} nS_2 *...* nS_{x-1} * c_x
             if self.numPlayers > 3:
                 product = 0
@@ -338,25 +351,25 @@ class simGame:
             # reading numStrats for old players
             if oldNumPlayers <= self.numPlayers:
                 nS = file.readline().split(" ")
+                for n in nS:
+                    n = n.rstrip()
                 # Getting rationalities
                 rats = file.readline().split(" ")
                 for rat in rats:
                     rat = rat.rstrip()
-                
-                for n in nS:
-                    n = n.rstrip()
+                               
                 for x in range(oldNumPlayers):
                     self.players[x].numStrats = int(nS[x])
                     self.players[x].rationality = int(rats[x])
             else:
                 nS = file.readline().split(" ")
+                for n in nS:
+                    n = int(n.rstrip())
                 # Getting rationalities
                 rats = file.readline.split(" ")
                 for rat in rats:
                     rat = int(rat.rstrip())
-                    
-                for n in nS:
-                    n = int(n.rstrip())
+                
                 for x in range(numPlayers):
                     self.players[x].numStrats = int(nS[x])
                     self.players[x].rationality = rats[x]
@@ -372,6 +385,7 @@ class simGame:
                 # Create new players and read rest of numStrats
                 for x in range(oldNumPlayers, self.numPlayers):
                     p = Player(int(nS[x]), rats[x])
+                    players.append(p)
                     
             # new matrices added to the end
             size = 1
@@ -398,12 +412,15 @@ class simGame:
                 else:
                     self.payoffMatrix[m] = self.payoffMatrix[m][:self.players[0].numStrats]
                 for i in range(self.players[0].numStrats):
+                    # resizing
                     if self.players[1].numStrats > len(self.payoffMatrix[m][i]):
                         self.payoffMatrix[m][i] += [None] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
                     else:
                         self.payoffMatrix[m][i] = self.payoffMatrix[m][i][:self.players[1].numStrats]
                     # Reading in the next row of payoffs
                     payoffs = file.readline().split(" ")
+                    for payoff in payoffs:
+                        print("po:", payoff)
                     for payoff in payoffs:
                         payoff = int(payoff.rstrip())
                     
@@ -413,20 +430,18 @@ class simGame:
                             newList = ListNode(0, False)
                             self.payoffMatrix[m][i][j] = newList
                         curList = self.payoffMatrix[m][i][j]
-                        # print("LIST: \t", end="")
-                        # curList.printLL()
                         while curList.sizeOfLL() > self.numPlayers:
                             # Deleting
                             curList.removeAtIndex(curList.sizeOfLL() - 1)
                         
                         for x in range(self.numPlayers):
-                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old 
-                                print("\nPAYOFF:", payoffs[x])
-                                curList.payoff = payoffs[x]
-                                self.payoffMatrix[m][i][j].payoff = payoffs[x]
-                                print("val: ", self.payoffMatrix[m][i][j].payoff)
+                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old
+                                print("(m, i, j, x, payoff):", (m, i, j, x, int(payoffs[x])))
+                                curList.payoff = int(payoffs[x])
                                 print("AGAIN: \t", end="")
-                                curList.printLL()
+                                self.payoffMatrix[m][i][j].printLL()
+                                print()
+                                # curList.printLL()
                             else: # Everything is new
                                 # Adding
                                 curList.appendNode(payoffs[x], False)
