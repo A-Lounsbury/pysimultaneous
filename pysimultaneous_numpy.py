@@ -66,14 +66,13 @@ class simGame:
             for x in range(2, self.numPlayers):
                 product *= self.players[x].numStrats
             dimensions = tuple([product] + [self.players[x].numStrats for x in range(2)])
-            print("dimensions: ", dimensions)
             
         for x in range(self.numPlayers):
             self.payoffMatrix.append(np.zeros(dimensions))
         return
     
     def computeImpartiality(self):
-        """ ? 
+        """ Checks if players 2,...,numPlayers have the same number of strategies as player 1? 
         """
         num = self.players[0].numStrats
         for x in range(1, self.numPlayers):
@@ -97,21 +96,21 @@ class simGame:
         
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
+                if self.payoffMatrix[0][p1Strat][p2Strat] < self.payoffMatrix[0][i][p2Strat]:
                     p1BR = False
             
             for j in range(self.players[1].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getListNode(1).payoff:
+                if self.payoffMatrix[1][p1Strat][p2Strat] < self.payoffMatrix[1][p1Strat][j]:
                     p2BR = False
             return (p1BR, p2BR)
         else:
-            for m in range(len(self.payoffMatrix)):
+            for m in range(self.payoffMatrix[0].size):
                 for i in range(self.players[0].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
+                    if self.payoffMatrix[0][m][p1Strat][p2Strat] < self.payoffMatrix[0][m][i][p2Strat]:
                         p1BR = False
                 
                 for j in range(self.players[1].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getNode[1].payoff:
+                    if self.payoffMatrix[1][m][p1Strat][p2Strat] < self.payoffMatrix[1][m][p1Strat][j]:
                         p2BR = False
                         
     def hash(self, profile):
@@ -154,7 +153,6 @@ class simGame:
             for x in range(self.numPlayers):
                 print(self.payoffMatrix[x])
                 print()
-                
 
     def readFromFile(self, fileName):
         addMoreOutcomesPast2 = False # kMatrix
@@ -442,3 +440,8 @@ class simGame:
 G = simGame(3)
 print("G:")
 G.printGame()
+
+print(G.payoffMatrix[0][0][0][0])
+
+results = G.isBestResponse(0, 0)
+print(results)
