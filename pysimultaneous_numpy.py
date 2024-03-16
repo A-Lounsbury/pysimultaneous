@@ -379,8 +379,10 @@ class simGame:
             fileName (str): the file name
         """
         with open(fileName, 'w') as file:
-            file.write(str(self.numPlayers) + "\n")
             if together:
+                file.write("together\n")
+                file.write(str(self.numPlayers) + "\n")
+                
                 # write numStrats to file
                 for x in range(self.numPlayers):
                     file.write(str(self.players[x].numStrats))
@@ -394,8 +396,7 @@ class simGame:
                     if x < self.numPlayers - 1:
                         file.write(" ")
                 file.write("\n")
-                
-                # FIXME
+
                 # write payoffMatrix to file
                 if self.numPlayers < 3:
                     for i in range(self.players[0].numStrats):
@@ -410,7 +411,6 @@ class simGame:
                             file.write("\n")
                 else: 
                     for m in range(self.payoffMatrix[0].shape[0]):
-                        print("m:", m)
                         for i in range(self.players[0].numStrats):
                             for j in range(self.players[1].numStrats):
                                 for x in range(self.numPlayers):
@@ -424,6 +424,50 @@ class simGame:
                         if m < self.payoffMatrix[0].shape[0] - 1:
                             file.write("\n\n")
             else: # separate
+                file.write("separate\n")
+                file.write(str(self.numPlayers) + "\n")
+                
+                # write numStrats to file
+                for x in range(self.numPlayers):
+                    file.write(str(self.players[x].numStrats))
+                    if x < self.numPlayers - 1:
+                        file.write(" ")
+                file.write("\n")
+                
+                # write rationalities to the file
+                for x in range(self.numPlayers):
+                    file.write(str(self.players[x].rationality))
+                    if x < self.numPlayers - 1:
+                        file.write(" ")
+                file.write("\n")
+
+                # FIXME
+                # write payoffMatrix to file
+                if self.numPlayers < 3:
+                    for i in range(self.players[0].numStrats):
+                        for j in range(self.players[1].numStrats):
+                            for x in range(self.numPlayers):
+                                file.write(str(self.payoffMatrix[x][i][j]))
+                                if x < self.numPlayers - 1:
+                                    file.write(" ")
+                            if j < self.players[1].numStrats - 1:
+                                file.write(" ")
+                        if i < self.players[0].numStrats - 1:
+                            file.write("\n")
+                else: 
+                    for x in range(self.numPlayers):
+                        for m in range(self.payoffMatrix[0].shape[0]):
+                            for i in range(self.players[0].numStrats):
+                                for j in range(self.players[1].numStrats):
+                                    file.write(str(self.payoffMatrix[x][m][i][j]))
+                                    if j < self.players[1].numStrats - 1:
+                                        file.write(" ")
+                                if i < self.players[0].numStrats - 1:
+                                    file.write("\n")
+                            if m < self.payoffMatrix[0].shape[0] - 1:
+                                file.write("\n\n")
+                        if x < self.numPlayers - 1:
+                            file.write("\n\n")
                 return
             print("Saved to " + fileName + ".\n")
     
@@ -463,4 +507,4 @@ G = simGame(3)
 print("G:")
 G.printGame()
 
-G.saveToFile("file.txt")
+G.saveToFile("text files/separate3.txt", together=False)
