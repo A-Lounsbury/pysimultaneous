@@ -62,7 +62,7 @@ class ListNode:
         curNode = self.head
         pos = 0
         if pos == index:
-            self.insertAtBegin(data)
+            self.insertAtBeginning(data)
         else:
             while curNode != None and pos + 1 != index:
                 pos = pos + 1
@@ -141,14 +141,14 @@ class ListNode:
         curNode = self.head
         pos = 0
         if pos == index:
-            curNode.data = val
+            curNode.payoff = val
         else:
             while curNode != None and pos != index:
                 pos = pos + 1
                 curNode = curNode.next
     
             if curNode != None:
-                curNode.data = val
+                curNode.payoff = val
             else:
                 print("Index not present")
 
@@ -377,7 +377,7 @@ class simGame:
             """
 			add new players if there are more,
 			resizing payoffMatrix and kMatrix,
-			increase the size of kStrategy vectors 
+			increase the size of kStrategy lists 
             """
             if oldNumPlayers != self.numPlayers:
                 if oldNumPLayers < numPlayers:
@@ -420,11 +420,10 @@ class simGame:
                     # Reading in the next row of payoffs
                     payoffs = file.readline().split(" ")
                     for payoff in payoffs:
-                        print("po:", payoff)
-                    for payoff in payoffs:
                         payoff = int(payoff.rstrip())
                     
                     for j in range(self.players[1].numStrats):
+                        print("j:", j)
                         # Create new list if needed
                         if not self.payoffMatrix[m][i][j]:
                             newList = ListNode(0, False)
@@ -435,16 +434,25 @@ class simGame:
                             curList.removeAtIndex(curList.sizeOfLL() - 1)
                         
                         for x in range(self.numPlayers):
-                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old
-                                print("(m, i, j, x, payoff):", (m, i, j, x, int(payoffs[x])))
+                            if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old payoff
+                                print("\tcur payoff:", payoffs[x])
+                                # Output: 
+                                    # 1, 0 1, 0
+                                    # 0, 0 0, 0
                                 curList.payoff = int(payoffs[x])
-                                print("AGAIN: \t", end="")
-                                self.payoffMatrix[m][i][j].printLL()
-                                print()
-                                # curList.printLL()
+                                # curList.getListNode(x).payoff = int(payoffs[x])
+                                
+                                # Output: 
+                                    # 1, 1 1, 1
+                                    # 0, 0 0, 0
+                                # curList.updateListNode(int(payoffs[x]), x)
+                                
+                                # Expected output: 
+                                    # 1, 1 0, 0
+                                    # 0, 0 0, 0
                             else: # Everything is new
                                 # Adding
-                                curList.appendNode(payoffs[x], False)
+                                curList.appendNode(int(payoffs[x]), False)
             if addMoreOutcomesPast2:
                 for m in range((len(self.kMatrix))):
                     if 4 > len(self.kMatrix[m]):
@@ -618,11 +626,6 @@ class simGame:
 G = simGame(2)
 print("G:")
 G.printGame()
-
-for x in range(G.numPlayers):
-    for s in range(G.players[x].numStrats):
-        print(G.strategyNames[x][s])
-    print()
 
 G.readFromFile("text files/freeMoney.txt")
 print("G after readFromFile:")
