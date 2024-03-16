@@ -1,7 +1,7 @@
-# pysimultaneous.py
+# pysimultaneous_numpy.py
 # Author: Andrew Lounsbury
 # Date: 3/16/24
-# Description: a class for handling simultaneous games with n players, n >= 2
+# Description: a class for handling simultaneous games with n players, n >= 2. Payoffs for each player are stored in their own individual numpy array. 
 import numpy as np
 
 class ListNode:
@@ -168,7 +168,7 @@ class simGame:
     kStrategies = [[] for i in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
     mixedEquilibria = []
     numPlayers = -1
-    payoffMatrix = []
+    payoffMatrix = [] # numPlayers long, contains the players' individual payoff matrices
     players = []
     pureEquilibria = []
     rationalityProbabilities = [0.0 for i in range(4)] # probability a player is L_i, i = 0, 1, 2, 3
