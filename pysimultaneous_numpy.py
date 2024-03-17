@@ -1,6 +1,6 @@
 # pysimultaneous_numpy.py
 # Author: Andrew Lounsbury
-# Date: 3/16/24
+# Date: 3/17/24
 # Description: a class for handling simultaneous games with n players, n >= 2. Payoffs for each player are stored in their own individual numpy array. 
 import numpy as np
 
@@ -312,28 +312,20 @@ class simGame:
         """
         # FIXME
         if player == 0: # player is player 1
-            if self.numPlayers < 3:
-                for x in range(self.numPlayers):
-                    # deleting s-th row from every x-th matrix
-                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=0)
-            else:
-                for m in range(self.payoffMatrix[0].shape[0]):
-                    self.payoffMatrix[0][m] = np.delete(self.payoffMatrix[0][m], s, axis=0)
+            for x in range(self.numPlayers):
+                # deleting s-th row from every x-th matrix
+                self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=0)
         elif player == 1: # player is player 2
-            if self.numPlayers < 3:
-                for x in range(self.numPlayers):
-                    # deleting s-th column from every x-th matrix
-                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
-            else:
-                for m in range(self.payoffMatrix[0].shape[0]):
-                    self.payoffMatrix[1][m] = np.delete(self.payoffMatrix[1][m], s, axis=1)
+            for x in range(self.numPlayers):
+                # deleting s-th column from every x-th matrix
+                self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
         else: # player > 1
             numErased = 0
             product = 1
             m = 0
-            end = [0 for i in range(self.numPlayers)]
+            end = [0 for x in range(self.numPlayers)]
             for y in range(self.numPlayers):
-                if y != x:
+                if y != player:
                     end[y] = self.players[y].numStrats
                 else:
                     end[y] = s
@@ -341,16 +333,16 @@ class simGame:
             profile = [0 for i in range(self.numPlayers)]
             while m < self.hash(end):
                 profile = unhash(m)
-                profile[x] = s # at start of section
+                profile[player] = s # at start of section
                 num = 1
-                if x < self.numPlayers - 1:
+                if player < self.numPlayers - 1:
                     for y in range(2, self.numPlayers):
-                        if y != x:
+                        if y != player:
                             num *= self.players[y].numStrats
-                elif x == self.numPlayers - 1 and self.numPlayers > 3:
+                elif player == self.numPlayers - 1 and self.numPlayers > 3:
                     num = self.players[x].numStrats
                 else:
-                    print("Error: unexpected values for x and numPlayers")
+                    print("Error: unexpected values for player and numPlayers")
                 
                 while numErased < num:
                     del self.payoffMatrix[hash(profile)]
@@ -388,7 +380,7 @@ class simGame:
                                     incremented = True
                             y += 1
                 if x > 2 and x < self.numPlayers - 1 and product == 1:
-                    for y in range(2, x - 1):
+                    for y in range(2, player - 1):
                         product *= self.players[y].numStrats
                 m += product # move to the next one, which is the first in the next section
                 
@@ -530,47 +522,15 @@ class simGame:
         return profile
 
 arr = np.array([
-    [
-        [1, 2],
-        [3, 4]
-    ],
-    [
-        [5, 6],
-        [7, 8]
-    ]
+    [[1, 2], [3, 4]],
+    [[5, 6], [7, 8]],
+    [[9, 10], [11, 12]]
 ])
-T = simGame(2)
-T.enterPayoffs(arr)
-T.print()
-T.removeStrategy(0, 0)
-print("T:")
-T.print()
 
-arr = np.array([
-    [
-        [1, 2],
-        [3, 4]
-    ],
-    [
-        [5, 6],
-        [7, 8]
-    ]
-])
-S = simGame(2)
-S.enterPayoffs(arr)
-S.print()
-S.removeStrategy(1, 0)
-print("S:")
-S.print()
-
-G = simGame(2) # 2 players, all payoffs zero
+G = simGame(3)
 G.print()
-G.removeStrategy(0, 0)
+G.enterPayoffs(arr)
+G.print()
+G.removeStrategy(1, 0)
 print("G again:")
 G.print()
-
-H = simGame(2)
-H.print()
-H.removeStrategy(1, 0)
-print("H again:")
-H.print()
