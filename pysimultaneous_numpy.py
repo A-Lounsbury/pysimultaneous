@@ -67,6 +67,7 @@ class simGame:
                 product *= self.players[x].numStrats
             dimensions = tuple([product] + [self.players[x].numStrats for x in range(2)])
             
+        # Appending one matrix of payoffs for each player
         for x in range(self.numPlayers):
             self.payoffMatrix.append(np.zeros(dimensions))
         return
@@ -81,7 +82,12 @@ class simGame:
                 return
         impartial = True
     
-    def enterPayoffs(self, payoffs = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]):
+    def enterPayoffs(self, payoffs = np.array([[[[0, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]])):
+        """Enters the payoffs into the payoff matrix. 
+
+        Args:
+            payoffs (numpy array, optional): the payoffs to be entered. Defaults to np.array([[[[0, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]]).
+        """
         self.payoffMatrix = payoffs
     
     def isBestResponse(self, profile):
@@ -151,12 +157,9 @@ class simGame:
     def print(self):
         """Prints the payoff matrix
         """
-        if self.numPlayers < 3:
-            print(self.payoffMatrix[0])
-        else:
-            for x in range(self.numPlayers):
-                print(self.payoffMatrix[x])
-                print()
+        for x in range(self.numPlayers):
+            print(self.payoffMatrix[x])
+            print()
 
     def readFromFile(self, fileName):
         addMoreOutcomesPast2 = False # kMatrix
@@ -294,21 +297,31 @@ class simGame:
                 return
         print("Done reading from " + fileName)
 
-    def removeStrategy(self, x, s):
+    def removeStrategy(self, player, s):
         """Removes strategy s from player x in the payoff matrix
 
         Args:
-            x (int): index of the player
+            player (int): index of the player
             s (int): index of the strategy
         """
         # FIXME
-        if x == 0: # x is player 1
-            for m in range(len(self.payoffMatrix)):
-                del self.payoffMatrix[m][s]
-        if x == 1: # x is player 2
-            for m in range(len(self.payoffMatrix)):
-                del self.payoffMatrix[m][i][s]
-        else: # x > 1
+        if player == 0: # player is player 1
+            if self.numPlayers < 3:
+                for x in range(self.numPlayers):
+                    # deleting s-th row from every x-th matrix
+                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=0)
+            else:
+                for m in range(self.payoffMatrix[0].shape[0]):
+                    self.payoffMatrix[0][m] = np.delete(self.payoffMatrix[0][m], s, axis=0)
+        if player == 1: # player is player 2
+            if self.numPlayers < 3:
+                for x in range(self.numPlayers):
+                    # deleting s-th column from every x-th matrix
+                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
+            else:
+                for m in range(self.payoffMatrix[0].shape[0]):
+                    self.payoffMatrix[1][m] = np.delete(self.payoffMatrix[1][m], s, axis=1)
+        else: # player > 1
             numErased = 0
             product = 1
             m = 0
@@ -372,10 +385,13 @@ class simGame:
                     for y in range(2, x - 1):
                         product *= self.players[y].numStrats
                 m += product # move to the next one, which is the first in the next section
-        self.players[x].numStrats -= 1
+                
+        # Decrement the number of strategies for player
+        self.players[player].numStrats -= 1
         
         if self.impartial:
-            impartial = False        
+            impartial = False
+        return      
     
     def saveToFile(self, fileName, together=True):
         """Saves the data of a game to a text file
@@ -508,9 +524,48 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
-G = simGame(2)
-print("G:")
+arr = np.array([
+    [
+        [1, 2],
+        [3, 4]
+    ],
+    [
+        [5, 6],
+        [7, 8]
+    ]
+])
+T = simGame(2)
+T.enterPayoffs(arr)
+T.print()
+T.removeStrategy(0, 0)
+print("T:")
+T.print()
+
+arr = np.array([
+    [
+        [1, 2],
+        [3, 4]
+    ],
+    [
+        [5, 6],
+        [7, 8]
+    ]
+])
+S = simGame(2)
+S.enterPayoffs(arr)
+S.print()
+S.removeStrategy(1, 0)
+print("S:")
+S.print()
+
+G = simGame(2) # 2 players, all payoffs zero
+G.print()
+G.removeStrategy(0, 0)
+print("G again:")
 G.print()
 
-# G.readFromFile("text files/together2.txt")
-# G.print()
+H = simGame(2)
+H.print()
+H.removeStrategy(1, 0)
+print("H again:")
+H.print()
