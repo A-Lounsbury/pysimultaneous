@@ -462,7 +462,6 @@ class simGame:
                         file.write(" ")
                 file.write("\n")
 
-                # FIXME
                 # write payoffMatrix to file
                 if self.numPlayers < 3:
                     for i in range(self.players[0].numStrats):
