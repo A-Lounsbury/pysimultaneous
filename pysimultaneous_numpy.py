@@ -26,9 +26,10 @@ class simGame:
     strategyNames = []
     
     def __init__(self, numPlayers = 2):
-        numStrats = [2 for i in range(numPlayers)]
-        rationalities = [0 for i in range(numPlayers)]
-        self.players = [Player(numStrats[i], rationalities[0]) for i in range(numPlayers)]
+        # Creating players
+        numStrats = [2 for x in range(numPlayers)]
+        rationalities = [0 for x in range(numPlayers)]
+        self.players = [Player(numStrats[x], rationalities[0]) for x in range(numPlayers)]
         
         # Creating kStrategies' 4 arrays of lists of size numPlayers and setting rationalityProbabilities
         for r in range(4):
@@ -58,7 +59,7 @@ class simGame:
         self.payoffMatrix = []
         self.impartial = False
         
-        # Creating payoff matrix
+        # Creating dimensions for payoff matrix
         if self.numPlayers < 3:
             dimensions = tuple([self.players[x].numStrats for x in range(self.numPlayers)])
         else:
@@ -82,13 +83,18 @@ class simGame:
                 return
         impartial = True
     
-    def enterPayoffs(self, payoffs = np.array([[[[0, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]])):
+    def enterPayoffs(self, payoffs = np.array([
+        [[[0, 0], [0, 0]], [[0, 0], [0, 0]]], 
+        [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
+        ])):
         """Enters the payoffs into the payoff matrix. 
 
         Args:
             payoffs (numpy array, optional): the payoffs to be entered. Defaults to np.array([[[[0, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]]).
         """
-        self.payoffMatrix = payoffs
+        self.payoffMatrix = []
+        for ar in payoffs:
+            self.payoffMatrix.append(ar)
     
     def isBestResponse(self, profile):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
@@ -298,7 +304,7 @@ class simGame:
         print("Done reading from " + fileName)
 
     def removeStrategy(self, player, s):
-        """Removes strategy s from player x in the payoff matrix
+        """Removes strategy s from player in the payoff matrix
 
         Args:
             player (int): index of the player
@@ -313,7 +319,7 @@ class simGame:
             else:
                 for m in range(self.payoffMatrix[0].shape[0]):
                     self.payoffMatrix[0][m] = np.delete(self.payoffMatrix[0][m], s, axis=0)
-        if player == 1: # player is player 2
+        elif player == 1: # player is player 2
             if self.numPlayers < 3:
                 for x in range(self.numPlayers):
                     # deleting s-th column from every x-th matrix
@@ -391,7 +397,7 @@ class simGame:
         
         if self.impartial:
             impartial = False
-        return      
+        return
     
     def saveToFile(self, fileName, together=True):
         """Saves the data of a game to a text file
