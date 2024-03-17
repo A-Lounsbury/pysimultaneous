@@ -331,7 +331,7 @@ class simGame:
                 else:
                     end[x] = s
             
-            profile = [0 for x in range(self.numPlayers)]
+            profile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
             print("end again:", end)
             print("hash(end):", self.hash(end))
             # FIXME: both m and self.hash(end) start at 0, so this while loop never runs!
@@ -347,12 +347,9 @@ class simGame:
                     numToErase = self.players[player].numStrats
                 else:
                     print("Error: unexpected values for player and numPlayers")
-                
-                print("numErased:", numErased)
-                print("numToErase:", numToErase)
+
                 while numErased < numToErase:
                     for x in range(self.numPlayers):
-                        print("deleting x, hash:", (x, hash(profile)))
                         self.payoffMatrix[x][hash(profile)] = np.delete(self.payoffMatrix[x][hash(profile)], s, axis=2)
                     numErased += 1
                     
