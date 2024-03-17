@@ -340,9 +340,9 @@ class simGame:
                 profile[player] = s # at start of section
                 numToErase = 1
                 if player < self.numPlayers - 1:
-                    for y in range(2, self.numPlayers):
-                        if y != player:
-                            numToErase *= self.players[y].numStrats
+                    for x in range(2, self.numPlayers):
+                        if x != player:
+                            numToErase *= self.players[x].numStrats
                 elif player == self.numPlayers - 1 and self.numPlayers > 3:
                     numToErase = self.players[player].numStrats
                 else:
@@ -354,38 +354,38 @@ class simGame:
                     numErased += 1
                     
                     # last player's matrices are all lined up; others' must be found
-                    if x < self.numPlayers - 1:
+                    if player < self.numPlayers - 1:
                         if profile[2] > 0: # simply decrement first number
                             profile[2] -= 1
                         else: # go through each succeeding number
-                            y = 2
+                            x = 2
                             foundNonzero = False
                             while True:
                                 profile[y] = self.players[y].numStrats - 1
                                 # not last number and next number is nonzero
-                                if y != self.numPlayers - 1 and profile[y + 1] != 0:
-                                    profile[y + 1] -= 1
+                                if x != self.numPlayers - 1 and profile[x + 1] != 0:
+                                    profile[x + 1] -= 1
                                     foundNonzero = True
-                                elif y != self.numPlayers - 1 and profile[y + 1] == 0:
-                                    profile[y] = self.players[y].numStrats - 1
-                                elif y == self.numPlayers - 1:
+                                elif x != self.numPlayers - 1 and profile[y + 1] == 0:
+                                    profile[x] = self.players[x].numStrats - 1
+                                elif x == self.numPlayers - 1:
                                     profile[y] -= 1
-                                y += 1
+                                x += 1
                                 
-                                if y >= self.numPlayers or profile[y] != 0 or foundNonzero:
+                                if x >= self.numPlayers or profile[x] != 0 or foundNonzero:
                                     break
                                 
                         incremented = False
-                        y = 2
+                        x = 2
                         while not incremented and y < self.numPlayers:
-                            if y != x:
-                                if profile[y] != self.players[y].numStrats - 1:
-                                    profile[y] += 1
+                            if x != player:
+                                if profile[y] != self.players[x].numStrats - 1:
+                                    profile[x] += 1
                                     incremented = True
-                            y += 1
-                if x > 2 and x < self.numPlayers - 1 and product == 1:
-                    for y in range(2, player - 1):
-                        product *= self.players[y].numStrats
+                            x += 1
+                if player > 2 and player < self.numPlayers - 1 and product == 1:
+                    for x in range(2, player - 1):
+                        product *= self.players[x].numStrats
                 m += product # move to the next one, which is the first in the next section
                 
         # Decrement the number of strategies for player
