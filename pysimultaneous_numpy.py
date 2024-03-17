@@ -310,7 +310,7 @@ class simGame:
             player (int): index of the player
             s (int): index of the strategy
         """
-        # FIXME
+        print("removeStrategy:", s)
         if player == 0: # player is player 1
             for x in range(self.numPlayers):
                 # deleting s-th row from every x-th matrix
@@ -323,34 +323,41 @@ class simGame:
             numErased = 0
             product = 1
             m = 0
-            end = [0 for x in range(self.numPlayers)]
-            for y in range(self.numPlayers):
-                if y != player:
-                    end[y] = self.players[y].numStrats
+            end = [-1, -1] + [0 for x in range(2, self.numPlayers)]
+            print("end:", end)
+            for x in range(2, self.numPlayers):
+                if x != player:
+                    end[x] = self.players[x].numStrats
                 else:
-                    end[y] = s
+                    end[x] = s
             
-            profile = [0 for i in range(self.numPlayers)]
+            profile = [0 for x in range(self.numPlayers)]
+            print("end again:", end)
+            print("hash(end):", self.hash(end))
+            # FIXME: both m and self.hash(end) start at 0, so this while loop never runs!
             while m < self.hash(end):
-                profile = unhash(m)
+                profile = self.unhash(m)
                 profile[player] = s # at start of section
-                num = 1
+                numToErase = 1
                 if player < self.numPlayers - 1:
                     for y in range(2, self.numPlayers):
                         if y != player:
-                            num *= self.players[y].numStrats
+                            numToErase *= self.players[y].numStrats
                 elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                    num = self.players[x].numStrats
+                    numToErase = self.players[player].numStrats
                 else:
                     print("Error: unexpected values for player and numPlayers")
                 
-                while numErased < num:
-                    del self.payoffMatrix[hash(profile)]
+                print("numErased:", numErased)
+                print("numToErase:", numToErase)
+                while numErased < numToErase:
+                    for x in range(self.numPlayers):
+                        print("deleting x, hash:", (x, hash(profile)))
+                        self.payoffMatrix[x][hash(profile)] = np.delete(self.payoffMatrix[x][hash(profile)], s, axis=2)
                     numErased += 1
                     
                     # last player's matrices are all lined up; others' must be found
                     if x < self.numPlayers - 1:
-                        print()
                         if profile[2] > 0: # simply decrement first number
                             profile[2] -= 1
                         else: # go through each succeeding number
@@ -522,15 +529,25 @@ class simGame:
         return profile
 
 arr = np.array([
-    [[1, 2], [3, 4]],
-    [[5, 6], [7, 8]],
-    [[9, 10], [11, 12]]
+    [
+        [[1, 1], [1, 1]],
+        [[1.1, 1.1], [1.1, 1.1]]
+    ],
+    [
+        [[2, 2], [2, 2]],
+        [[2.1, 2.1], [2.1, 2.1]]
+    ],
+    [
+        [[3, 3], [3, 3]],
+        [[3.1, 3.1], [3.1, 3.1]]
+    ]
 ])
 
 G = simGame(3)
 G.print()
+print("G:")
 G.enterPayoffs(arr)
 G.print()
-G.removeStrategy(1, 0)
+G.removeStrategy(2, 0)
 print("G again:")
 G.print()
