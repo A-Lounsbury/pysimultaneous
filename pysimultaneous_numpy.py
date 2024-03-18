@@ -88,8 +88,8 @@ class simGame:
 
         Args:
             payoffs (numpy array): the payoffs to be entered. 
-            numPlayers (int): the number of players. Defaults to self.numPlayers. 
-            numStrats (list): a list of integers that are the new numbers of strategies for each player. Defaults to [self.players[x].numStrats for x in range(self.numPlayers)]. 
+            numPlayers (int): the number of players. Defaults to 2. 
+            numStrats (list): a list of integers that are the new numbers of strategies for each player. Defaults to [2, 2]. 
         """
         if numPlayers != len(numStrats):
             print("Error (enterPayoffs): the number of numStrats did not match the given number of players.")
