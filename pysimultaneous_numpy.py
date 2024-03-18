@@ -96,7 +96,7 @@ class simGame:
             return
         self.numPlayers = numPlayers
         for x in range(self.numPlayers):
-            players[x].numStrats = numStrats[x]
+            self.players[x].numStrats = numStrats[x]
         self.payoffMatrix = []
         for ar in payoffs:
             self.payoffMatrix.append(ar)
@@ -134,8 +134,9 @@ class simGame:
                             br[x] = False
         return br
                         
+    # FIXME
     def hash(self, profile):
-        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence
+        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function unhash. 
 
         Args:
             profile (list): strategy profile (indices)
@@ -327,136 +328,32 @@ class simGame:
             m = 0
             numErased = 0
             product = 1
+            numPlayersAbove = self.numPlayers - player - 1
+            numPlayersBelow = player - 2
             curProfile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
-            endProfile = [-1, -1] + [self.players[x].numStrats for x in range(2, self.numPlayers)]
-            endProfile[player] = s
-            print("endProfile:", endProfile)
-            print("hash(endProfile):", self.hash(endProfile))
+            numStratsSum = 0
+            numStratsSum = sum(self.players[x].numStrats for x in range(player, self.numPlayers))
+            start = numPlayersBelow * numStratsSum
+            print("start:", start)
             # FIXME
-            print("hash curProfile:", self.hash(curProfile))
-            print("hash endProfile:", self.hash(endProfile))
-            # when player == 2, numPlayers == 3, and s == 0, self.hash(endProfile) is always 
-            if self.hash(endProfile) == 0:
-                while m < self.payoffMatrix[0].shape[0]:
-                    print("m:", m)
-                    print("shape:", self.payoffMatrix[0].shape[0])
-                    curProfile[player] = s # at start of section
-                    # setting the number of matrices to erase
-                    numToErase = 1
-                    if player < self.numPlayers - 1:
-                        for x in range(2, self.numPlayers):
-                            if x != player:
-                                numToErase *= self.players[x].numStrats
-                    elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                        numToErase = self.players[player].numStrats
-                    else:
-                        print(f"Error: unexpected values for player \"{player}\" and numPlayers \"{self.numPlayers}\"")
-
-                    k = 0
-                    # while numErased < numToErase:
-                    print("k:", k)
-                    for x in range(self.numPlayers):
-                        # deleting the self.hash(curProfile)-th matrix for each player
-                        print("\tx:", x)
-                        print("\tdeleting matrix", m)
-                        self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], m, axis=2)
-                    numErased += 1
+            """For each player x, cycle through the sequence of profiles whose hashes correspond to 
+            4, 5, 6, 13, 14, 15, 22, 23, 24, and delete those matrices. 
+            OR, select the first matrix and delete it for each player, then select the second 
+            matrix and delete it for each player, so on and so forth. 
+            """
+            print("curProfile", curProfile)
+            for x in range(self.numPlayers):
+                # starting at the first profile in the sequence
+                
+                
+                # continue until...we've deleted the number of matrices we were supposed to delete? Until the profile or the hash of the profile looks a certain way? 
+                k = 0
+                while k < 10:                
+                    # deleting the matrix
+                    # self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], self.hash(curProfile), axis=2)
                     k += 1
-                    
-                    # last player's matrices are all lined up; others' must be found
-                    if player < self.numPlayers - 1:
-                        if curProfile[2] > 0: # simply decrement first number
-                            curProfile[2] -= 1
-                        else: # go through each succeeding number
-                            x = 2
-                            foundNonzeroStrat = False
-                            while True:
-                                curProfile[y] = self.players[y].numStrats - 1
-                                # not last number and next number is nonzero
-                                if x != self.numPlayers - 1 and curProfile[x + 1] != 0:
-                                    curProfile[x + 1] -= 1
-                                    foundNonzeroStrat = True
-                                elif x != self.numPlayers - 1 and curProfile[y + 1] == 0:
-                                    curProfile[x] = self.players[x].numStrats - 1
-                                elif x == self.numPlayers - 1:
-                                    curProfile[y] -= 1
-                                x += 1
-                                
-                                if x >= self.numPlayers or curProfile[x] != 0 or foundNonzeroStrat:
-                                    break
-                                
-                        incremented = False
-                        x = 2
-                        while not incremented and y < self.numPlayers:
-                            if x != player:
-                                if curProfile[y] != self.players[x].numStrats - 1:
-                                    curProfile[x] += 1
-                                    incremented = True
-                            x += 1
-                    if player > 2 and player < self.numPlayers - 1 and product == 1:
-                        for x in range(2, player - 1):
-                            product *= self.players[x].numStrats
-                    print("ADDING:", product)
-                    m += product # move to the next one, which is the first in the next section
-            else:
-                while m < self.payoffMatrix[0].shape[0]:
-                    print("m:", m)
-                    print("shape:", self.payoffMatrix[0].shape[0])
-                    curProfile[player] = s # at start of section
-                    # setting the number of matrices to erase
-                    numToErase = 1
-                    if player < self.numPlayers - 1:
-                        for x in range(2, self.numPlayers):
-                            if x != player:
-                                numToErase *= self.players[x].numStrats
-                    elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                        numToErase = self.players[player].numStrats
-                    else:
-                        print(f"Error: unexpected values for player \"{player}\" and numPlayers \"{self.numPlayers}\"")
-
-                    k = 0
-                    while numErased < numToErase:
-                        print("k:", k)
-                        for x in range(self.numPlayers):
-                            # deleting the self.hash(curProfile)-th matrix for each player
-                            self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], self.hash(curProfile), axis=2)
-                        numErased += 1
-                        k += 1
-                        
-                        # last player's matrices are all lined up; others' must be found
-                        if player < self.numPlayers - 1:
-                            if curProfile[2] > 0: # simply decrement first number
-                                curProfile[2] -= 1
-                            else: # go through each succeeding number
-                                x = 2
-                                foundNonzeroStrat = False
-                                while True:
-                                    curProfile[y] = self.players[y].numStrats - 1
-                                    # not last number and next number is nonzero
-                                    if x != self.numPlayers - 1 and curProfile[x + 1] != 0:
-                                        curProfile[x + 1] -= 1
-                                        foundNonzeroStrat = True
-                                    elif x != self.numPlayers - 1 and curProfile[y + 1] == 0:
-                                        curProfile[x] = self.players[x].numStrats - 1
-                                    elif x == self.numPlayers - 1:
-                                        curProfile[y] -= 1
-                                    x += 1
-                                    
-                                    if x >= self.numPlayers or curProfile[x] != 0 or foundNonzeroStrat:
-                                        break
-                                    
-                            incremented = False
-                            x = 2
-                            while not incremented and y < self.numPlayers:
-                                if x != player:
-                                    if curProfile[y] != self.players[x].numStrats - 1:
-                                        curProfile[x] += 1
-                                        incremented = True
-                                x += 1
-                    if player > 2 and player < self.numPlayers - 1 and product == 1:
-                        for x in range(2, player - 1):
-                            product *= self.players[x].numStrats
-                    m += product # move to the next one, which is the first in the next section
+                
+                # obtaining the next profile in the sequence
                 
         # Decrement the number of strategies for player
         self.players[player].numStrats -= 1
@@ -563,8 +460,9 @@ class simGame:
                 return
             print("Saved to " + fileName + ".\n")
     
+    # FIXME
     def unhash(self, m):
-        """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index
+        """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index. This should be the inverse of the function hash. 
 
         Args:
             m (int): the index of the payoff array that we're unhashing
@@ -595,26 +493,228 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
-arr = np.array([
-    [
+arr_3players = np.array([
+    [ # player 1's matrices
         [[1, 1], [1, 1]],
         [[1.1, 1.1], [1.1, 1.1]]
     ],
-    [
+    [ # player 2's matrices
         [[2, 2], [2, 2]],
         [[2.1, 2.1], [2.1, 2.1]]
     ],
-    [
+    [ # player 3's matrices
         [[3, 3], [3, 3]],
         [[3.1, 3.1], [3.1, 3.1]]
     ]
 ])
 
-G = simGame(3)
-G.print()
-print("G:")
-G.enterPayoffs(arr, 3, [2, 2])
-G.print()
-G.removeStrategy(2, 0)
-print("G again:")
-G.print()
+arr_5players = np.array([
+    [ # player 1's matrices
+        [[1, 1], [1, 1]], 
+        [[2, 1], [1, 1]], 
+        [[3, 1], [1, 1]], 
+        [[4, 1], [1, 1]], 
+        [[5, 1], [1, 1]], 
+        [[6, 1], [1, 1]], 
+        [[7, 1], [1, 1]], 
+        [[8, 1], [1, 1]], 
+        [[9, 1], [1, 1]], 
+        
+        [[10, 1], [1, 1]], 
+        [[11, 1], [1, 1]], 
+        [[12, 1], [1, 1]], 
+        [[13, 1], [1, 1]], 
+        [[14, 1], [1, 1]], 
+        [[15, 1], [1, 1]], 
+        [[16, 1], [1, 1]], 
+        [[17, 1], [1, 1]], 
+        [[18, 1], [1, 1]], 
+        
+        [[19, 1], [1, 1]], 
+        [[20, 1], [1, 1]], 
+        [[21, 1], [1, 1]], 
+        [[22, 1], [1, 1]], 
+        [[23, 1], [1, 1]], 
+        [[24, 1], [1, 1]], 
+        [[25, 1], [1, 1]], 
+        [[26, 1], [1, 1]], 
+        [[27, 1], [1, 1]]
+        
+    ],
+    [ # player 2's matrices
+        [[28, 2], [2, 2]], 
+        [[29, 2], [2, 2]], 
+        [[30, 2], [2, 2]], 
+        [[31, 2], [2, 2]], 
+        [[32, 2], [2, 2]], 
+        [[33, 2], [2, 2]], 
+        [[34, 2], [2, 2]], 
+        [[35, 2], [2, 2]], 
+        [[36, 2], [2, 2]], 
+        
+        [[37, 2], [2, 2]], 
+        [[38, 2], [2, 2]], 
+        [[39, 2], [2, 2]], 
+        [[40, 2], [2, 2]], 
+        [[41, 2], [2, 2]], 
+        [[42, 2], [2, 2]], 
+        [[43, 2], [2, 2]], 
+        [[44, 2], [2, 2]], 
+        [[45, 2], [2, 2]], 
+        
+        [[46, 2], [2, 2]], 
+        [[47, 2], [2, 2]], 
+        [[48, 2], [2, 2]], 
+        [[49, 2], [2, 2]], 
+        [[50, 2], [2, 2]], 
+        [[51, 2], [2, 2]], 
+        [[52, 2], [2, 2]], 
+        [[53, 2], [2, 2]], 
+        [[54, 2], [2, 2]]
+        
+    ],
+    [ # player 3's matrices
+        [[55, 3], [3, 3]], 
+        [[56, 3], [3, 3]], 
+        [[57, 3], [3, 3]], 
+        [[58, 3], [3, 3]], 
+        [[59, 3], [3, 3]], 
+        [[60, 3], [3, 3]], 
+        [[61, 3], [3, 3]], 
+        [[62, 3], [3, 3]], 
+        [[63, 3], [3, 3]], 
+        
+        [[64, 3], [3, 3]], 
+        [[65, 3], [3, 3]], 
+        [[66, 3], [3, 3]], 
+        [[67, 3], [3, 3]], 
+        [[68, 3], [3, 3]], 
+        [[69, 3], [3, 3]], 
+        [[70, 3], [3, 3]], 
+        [[71, 3], [3, 3]], 
+        [[72, 3], [3, 3]], 
+        
+        [[73, 3], [3, 3]], 
+        [[74, 3], [3, 3]], 
+        [[75, 3], [3, 3]], 
+        [[76, 3], [3, 3]], 
+        [[77, 3], [3, 3]], 
+        [[78, 3], [3, 3]], 
+        [[79, 3], [3, 3]], 
+        [[80, 3], [3, 3]], 
+        [[81, 3], [3, 3]]
+        
+    ],
+    [ # player 4's matrices
+        [[82, 4], [4, 4]], 
+        [[83, 4], [4, 4]], 
+        [[84, 4], [4, 4]], 
+        [[85, 4], [4, 4]], 
+        [[86, 4], [4, 4]], 
+        [[87, 4], [4, 4]], 
+        [[88, 4], [4, 4]], 
+        [[89, 4], [4, 4]], 
+        [[90, 4], [4, 4]], 
+        
+        [[91, 4], [4, 4]], 
+        [[92, 4], [4, 4]], 
+        [[93, 4], [4, 4]], 
+        [[94, 4], [4, 4]], 
+        [[95, 4], [4, 4]], 
+        [[96, 4], [4, 4]], 
+        [[97, 4], [4, 4]], 
+        [[98, 4], [4, 4]], 
+        [[99, 4], [4, 4]], 
+        
+        [[100, 4], [4, 4]], 
+        [[101, 4], [4, 4]], 
+        [[102, 4], [4, 4]], 
+        [[103, 4], [4, 4]], 
+        [[104, 4], [4, 4]], 
+        [[105, 4], [4, 4]], 
+        [[106, 4], [4, 4]], 
+        [[107, 4], [4, 4]], 
+        [[108, 4], [4, 4]]
+        
+    ],
+    [ # player 5's matrices
+        [[109, 5], [5, 5]], 
+        [[110, 5], [5, 5]], 
+        [[111, 5], [5, 5]], 
+        [[112, 5], [5, 5]], 
+        [[113, 5], [5, 5]], 
+        [[114, 5], [5, 5]], 
+        [[115, 5], [5, 5]], 
+        [[116, 5], [5, 5]], 
+        [[117, 5], [5, 5]], 
+        
+        [[118, 5], [5, 5]], 
+        [[119, 5], [5, 5]], 
+        [[120, 5], [5, 5]], 
+        [[121, 5], [5, 5]], 
+        [[122, 5], [5, 5]], 
+        [[123, 5], [5, 5]], 
+        [[124, 5], [5, 5]], 
+        [[125, 5], [5, 5]], 
+        [[126, 5], [5, 5]], 
+        
+        [[127, 5], [5, 5]], 
+        [[128, 5], [5, 5]], 
+        [[129, 5], [5, 5]], 
+        [[130, 5], [5, 5]], 
+        [[131, 5], [5, 5]], 
+        [[132, 5], [5, 5]], 
+        [[133, 5], [5, 5]], 
+        [[134, 5], [5, 5]], 
+        [[135, 5], [5, 5]]
+        
+    ],
+])
+
+# G = simGame(3)
+# G.print()
+# print("G:")
+# G.enterPayoffs(arr_3players, 3, [2, 2, 2])
+# G.print()
+# G.removeStrategy(2, 0)
+# print("G again:")
+# G.print()
+
+H = simGame(5)
+H.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+H.removeStrategy(3, 1)
+# H.print()
+
+print("1:", H.unhash(1))
+print("2:", H.unhash(2))
+print("3:", H.unhash(3))
+print()
+
+print("4:", H.unhash(4))
+print("5:", H.unhash(5))
+print("6:", H.unhash(6))
+print("13:", H.unhash(13))
+print("14:", H.unhash(14))
+print("15:", H.unhash(15))
+print("22:", H.unhash(22))
+print("23:", H.unhash(23))
+print("24:", H.unhash(24))
+
+print("inverses:")
+print("1:", H.hash(H.unhash(1)))
+print("2:", H.hash(H.unhash(2)))
+print("3:", H.hash(H.unhash(3)))
+print("4:", H.hash(H.unhash(4)))
+print("5:", H.hash(H.unhash(5)))
+print("6:", H.hash(H.unhash(6)))
+print("13:", H.hash(H.unhash(13)))
+print("14:", H.hash(H.unhash(14)))
+print("15:", H.hash(H.unhash(15)))
+print("22:", H.hash(H.unhash(22)))
+print("23:", H.hash(H.unhash(23)))
+print("24:", H.hash(H.unhash(24)))
+print()
+
+print("1:", H.unhash(H.hash([-1, -1, 1, 0, 0])))
+print("2:", H.unhash(H.hash([-1, -1, 2, 0, 0])))
+print("3:", H.unhash(H.hash([-1, -1, 0, 1, 0])))
