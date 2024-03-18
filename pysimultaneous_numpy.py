@@ -83,16 +83,13 @@ class simGame:
                 return
         impartial = True
     
-    def enterPayoffs(self, numPlayers = 2, numStrats = [2, 2], payoffs = np.array([
-        [[0, 0], [0, 0]], 
-        [[0, 0], [0, 0]]
-        ])):
+    def enterPayoffs(self, payoffs, numPlayers = 2, numStrats = [2, 2]):
         """Enters the payoffs into the payoff matrix and updates self.numPlayers and each player's numStrats. 
 
         Args:
-            numPlayers (int): the number of players. Defaults to 2. 
-            numStrats (list): a list of integers that are the new numbers of strategies for each player. Defaults to [2, 2]. 
-            payoffs (numpy array, optional): the payoffs to be entered. Defaults to np.array([[[0, 0], [0, 0]], [[0, 0], [0, 0]]]). 
+            payoffs (numpy array): the payoffs to be entered. 
+            numPlayers (int): the number of players. Defaults to self.numPlayers. 
+            numStrats (list): a list of integers that are the new numbers of strategies for each player. Defaults to [self.players[x].numStrats for x in range(self.numPlayers)]. 
         """
         if numPlayers != len(numStrats):
             print("Error (enterPayoffs): the number of numStrats did not match the given number of players.")
@@ -616,7 +613,7 @@ arr = np.array([
 G = simGame(3)
 G.print()
 print("G:")
-G.enterPayoffs(3, [2, 2], arr)
+G.enterPayoffs(arr, 3, [2, 2])
 G.print()
 G.removeStrategy(2, 0)
 print("G again:")
