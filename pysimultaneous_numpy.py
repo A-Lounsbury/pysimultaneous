@@ -83,15 +83,23 @@ class simGame:
                 return
         impartial = True
     
-    def enterPayoffs(self, payoffs = np.array([
-        [[[0, 0], [0, 0]], [[0, 0], [0, 0]]], 
-        [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
+    def enterPayoffs(self, numPlayers = 2, numStrats = [2, 2], payoffs = np.array([
+        [[0, 0], [0, 0]], 
+        [[0, 0], [0, 0]]
         ])):
-        """Enters the payoffs into the payoff matrix. 
+        """Enters the payoffs into the payoff matrix and updates self.numPlayers and each player's numStrats. 
 
         Args:
-            payoffs (numpy array, optional): the payoffs to be entered. Defaults to np.array([[[[0, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]]).
+            numPlayers (int): the number of players. Defaults to 2. 
+            numStrats (list): a list of integers that are the new numbers of strategies for each player. Defaults to [2, 2]. 
+            payoffs (numpy array, optional): the payoffs to be entered. Defaults to np.array([[[0, 0], [0, 0]], [[0, 0], [0, 0]]]). 
         """
+        if numPlayers != len(numStrats):
+            print("Error (enterPayoffs): the number of numStrats did not match the given number of players.")
+            return
+        self.numPlayers = numPlayers
+        for x in range(self.numPlayers):
+            players[x].numStrats = numStrats[x]
         self.payoffMatrix = []
         for ar in payoffs:
             self.payoffMatrix.append(ar)
@@ -310,7 +318,6 @@ class simGame:
             player (int): index of the player
             s (int): index of the strategy
         """
-        print("removeStrategy:", s)
         if player == 0: # player is player 1
             for x in range(self.numPlayers):
                 # deleting s-th row from every x-th matrix
@@ -320,73 +327,139 @@ class simGame:
                 # deleting s-th column from every x-th matrix
                 self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
         else: # player > 1
+            m = 0
             numErased = 0
             product = 1
-            m = 0
-            end = [-1, -1] + [0 for x in range(2, self.numPlayers)]
-            print("end:", end)
-            for x in range(2, self.numPlayers):
-                if x != player:
-                    end[x] = self.players[x].numStrats
-                else:
-                    end[x] = s
-            
-            profile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
-            print("end again:", end)
-            print("hash(end):", self.hash(end))
-            # FIXME: both m and self.hash(end) start at 0, so this while loop never runs!
-            while m < self.hash(end):
-                profile = self.unhash(m)
-                profile[player] = s # at start of section
-                numToErase = 1
-                if player < self.numPlayers - 1:
-                    for x in range(2, self.numPlayers):
-                        if x != player:
-                            numToErase *= self.players[x].numStrats
-                elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                    numToErase = self.players[player].numStrats
-                else:
-                    print("Error: unexpected values for player and numPlayers")
+            curProfile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
+            endProfile = [-1, -1] + [self.players[x].numStrats for x in range(2, self.numPlayers)]
+            endProfile[player] = s
+            print("endProfile:", endProfile)
+            print("hash(endProfile):", self.hash(endProfile))
+            # FIXME
+            print("hash curProfile:", self.hash(curProfile))
+            print("hash endProfile:", self.hash(endProfile))
+            # when player == 2, numPlayers == 3, and s == 0, self.hash(endProfile) is always 
+            if self.hash(endProfile) == 0:
+                while m < self.payoffMatrix[0].shape[0]:
+                    print("m:", m)
+                    print("shape:", self.payoffMatrix[0].shape[0])
+                    curProfile[player] = s # at start of section
+                    # setting the number of matrices to erase
+                    numToErase = 1
+                    if player < self.numPlayers - 1:
+                        for x in range(2, self.numPlayers):
+                            if x != player:
+                                numToErase *= self.players[x].numStrats
+                    elif player == self.numPlayers - 1 and self.numPlayers > 3:
+                        numToErase = self.players[player].numStrats
+                    else:
+                        print(f"Error: unexpected values for player \"{player}\" and numPlayers \"{self.numPlayers}\"")
 
-                while numErased < numToErase:
+                    k = 0
+                    # while numErased < numToErase:
+                    print("k:", k)
                     for x in range(self.numPlayers):
-                        self.payoffMatrix[x][hash(profile)] = np.delete(self.payoffMatrix[x][hash(profile)], s, axis=2)
+                        # deleting the self.hash(curProfile)-th matrix for each player
+                        print("\tx:", x)
+                        print("\tdeleting matrix", m)
+                        self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], m, axis=2)
                     numErased += 1
+                    k += 1
                     
                     # last player's matrices are all lined up; others' must be found
                     if player < self.numPlayers - 1:
-                        if profile[2] > 0: # simply decrement first number
-                            profile[2] -= 1
+                        if curProfile[2] > 0: # simply decrement first number
+                            curProfile[2] -= 1
                         else: # go through each succeeding number
                             x = 2
-                            foundNonzero = False
+                            foundNonzeroStrat = False
                             while True:
-                                profile[y] = self.players[y].numStrats - 1
+                                curProfile[y] = self.players[y].numStrats - 1
                                 # not last number and next number is nonzero
-                                if x != self.numPlayers - 1 and profile[x + 1] != 0:
-                                    profile[x + 1] -= 1
-                                    foundNonzero = True
-                                elif x != self.numPlayers - 1 and profile[y + 1] == 0:
-                                    profile[x] = self.players[x].numStrats - 1
+                                if x != self.numPlayers - 1 and curProfile[x + 1] != 0:
+                                    curProfile[x + 1] -= 1
+                                    foundNonzeroStrat = True
+                                elif x != self.numPlayers - 1 and curProfile[y + 1] == 0:
+                                    curProfile[x] = self.players[x].numStrats - 1
                                 elif x == self.numPlayers - 1:
-                                    profile[y] -= 1
+                                    curProfile[y] -= 1
                                 x += 1
                                 
-                                if x >= self.numPlayers or profile[x] != 0 or foundNonzero:
+                                if x >= self.numPlayers or curProfile[x] != 0 or foundNonzeroStrat:
                                     break
                                 
                         incremented = False
                         x = 2
                         while not incremented and y < self.numPlayers:
                             if x != player:
-                                if profile[y] != self.players[x].numStrats - 1:
-                                    profile[x] += 1
+                                if curProfile[y] != self.players[x].numStrats - 1:
+                                    curProfile[x] += 1
                                     incremented = True
                             x += 1
-                if player > 2 and player < self.numPlayers - 1 and product == 1:
-                    for x in range(2, player - 1):
-                        product *= self.players[x].numStrats
-                m += product # move to the next one, which is the first in the next section
+                    if player > 2 and player < self.numPlayers - 1 and product == 1:
+                        for x in range(2, player - 1):
+                            product *= self.players[x].numStrats
+                    print("ADDING:", product)
+                    m += product # move to the next one, which is the first in the next section
+            else:
+                while m < self.payoffMatrix[0].shape[0]:
+                    print("m:", m)
+                    print("shape:", self.payoffMatrix[0].shape[0])
+                    curProfile[player] = s # at start of section
+                    # setting the number of matrices to erase
+                    numToErase = 1
+                    if player < self.numPlayers - 1:
+                        for x in range(2, self.numPlayers):
+                            if x != player:
+                                numToErase *= self.players[x].numStrats
+                    elif player == self.numPlayers - 1 and self.numPlayers > 3:
+                        numToErase = self.players[player].numStrats
+                    else:
+                        print(f"Error: unexpected values for player \"{player}\" and numPlayers \"{self.numPlayers}\"")
+
+                    k = 0
+                    while numErased < numToErase:
+                        print("k:", k)
+                        for x in range(self.numPlayers):
+                            # deleting the self.hash(curProfile)-th matrix for each player
+                            self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], self.hash(curProfile), axis=2)
+                        numErased += 1
+                        k += 1
+                        
+                        # last player's matrices are all lined up; others' must be found
+                        if player < self.numPlayers - 1:
+                            if curProfile[2] > 0: # simply decrement first number
+                                curProfile[2] -= 1
+                            else: # go through each succeeding number
+                                x = 2
+                                foundNonzeroStrat = False
+                                while True:
+                                    curProfile[y] = self.players[y].numStrats - 1
+                                    # not last number and next number is nonzero
+                                    if x != self.numPlayers - 1 and curProfile[x + 1] != 0:
+                                        curProfile[x + 1] -= 1
+                                        foundNonzeroStrat = True
+                                    elif x != self.numPlayers - 1 and curProfile[y + 1] == 0:
+                                        curProfile[x] = self.players[x].numStrats - 1
+                                    elif x == self.numPlayers - 1:
+                                        curProfile[y] -= 1
+                                    x += 1
+                                    
+                                    if x >= self.numPlayers or curProfile[x] != 0 or foundNonzeroStrat:
+                                        break
+                                    
+                            incremented = False
+                            x = 2
+                            while not incremented and y < self.numPlayers:
+                                if x != player:
+                                    if curProfile[y] != self.players[x].numStrats - 1:
+                                        curProfile[x] += 1
+                                        incremented = True
+                                x += 1
+                    if player > 2 and player < self.numPlayers - 1 and product == 1:
+                        for x in range(2, player - 1):
+                            product *= self.players[x].numStrats
+                    m += product # move to the next one, which is the first in the next section
                 
         # Decrement the number of strategies for player
         self.players[player].numStrats -= 1
@@ -543,7 +616,7 @@ arr = np.array([
 G = simGame(3)
 G.print()
 print("G:")
-G.enterPayoffs(arr)
+G.enterPayoffs(3, [2, 2], arr)
 G.print()
 G.removeStrategy(2, 0)
 print("G again:")
