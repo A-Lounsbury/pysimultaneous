@@ -10,9 +10,9 @@ class ListNode:
     bestResponse = True
     next = None
     
-    def __init__(self, payoff, bestResponse):
+    def __init__(self, payoff = 0, bestResponse = True):
         self.head = self
-        self.payoff = 0
+        self.payoff = payoff
         self.bestResponse = False
         self.next = None
 
@@ -99,7 +99,7 @@ class ListNode:
             x += 1
             
     def printListNode(self, end=""):
-        print(self.payoff, end=end)
+        print(self.payoff, end="")
     
     def removeAtIndex(self, index):
         if self.head == None:
@@ -203,18 +203,19 @@ class simGame:
                 self.strategyNames.append(["L(" + str(x) + ")"] + ["C(" + str(x) + ", " + str(i) + ")" for i in range(self.players[0].numStrats)] + ["R(" + str(x) + ")"])
         
         self.numPlayers = numPlayers
+        
+        # Creating the payoff matrix
         self.payoffMatrix = []
         if self.numPlayers < 3:
             matrix = []
             for i in range(self.players[0].numStrats):
                 row = []
                 for j in range(self.players[1].numStrats):
-                    outcome = ListNode(0, True)
+                    outcome = ListNode()
                     outcome.append(0, True)
                     row.append(outcome)                        
                 matrix.append(row)
             self.payoffMatrix.append(matrix)
-                
         else:
             numMatrices = 1
             for i in range(3, self.numPlayers):
@@ -224,8 +225,8 @@ class simGame:
                 for i in range(self.players[0].numStrats):
                     row = []
                     for j in range(self.players[1].numStrats):
-                        outcome = ListNode(0, True)
-                        for x in self.players:
+                        outcome = ListNode()
+                        for x in range(1, self.numPlayers):
                             outcome.append(0, True)
                         row.append(outcome)                 
                     matrix.append(row)
@@ -233,14 +234,40 @@ class simGame:
         return
     
     def enterPayoffs(self, payoffs = [
-        [
-            [0, 0], [0, 0]
-        ], 
-        [
-            [0, 0], [0, 0]
-        ]
-        ]):
-        self.payoffMatrix = payoffs
+        [[1, 5], [2, 6]],
+        [[3, 7], [4, 8]]
+    ], numPlayers = 2, numStrats = [2, 2]):
+        self.numPlayers = numPlayers
+        for x in range(self.numPlayers):
+            self.players[x].numStrats = numStrats[x]
+        
+        self.payoffMatrix = []
+        if self.numPlayers < 3:
+            matrix = []
+            for i in range(self.players[0].numStrats):
+                row = []
+                for j in range(self.players[1].numStrats):
+                    outcome = ListNode(payoffs[i][j][0], False)
+                    outcome.append(payoffs[i][j][1], False)
+                    row.append(outcome)                      
+                matrix.append(row)
+            self.payoffMatrix.append(matrix)
+        else:
+            numMatrices = 1
+            for i in range(2, self.numPlayers):
+                numMatrices *= self.players[i].numStrats
+            for m in range(numMatrices):
+                matrix = []
+                for i in range(self.players[0].numStrats):
+                    row = []
+                    for j in range(self.players[1].numStrats):
+                        outcome = ListNode(payoffs[m][i][j][0], False)
+                        for x in range(1, self.numPlayers):
+                            print("x:", x)
+                            outcome.append(payoffs[m][i][j][x], False)
+                        row.append(outcome)                 
+                    matrix.append(row)
+                self.payoffMatrix.append(matrix)
         
     def isBestResponse(self, p1Strat, p2Strat):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
@@ -288,7 +315,7 @@ class simGame:
                         self.payoffMatrix[m][i][j].printLL()
                         if j == self.players[1].numStrats - 1:
                             print()
-                        print()
+                        
                 print()
 
     def readFromFile(self, fileName):
@@ -573,17 +600,20 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
-"""FIXME
 arr_2players = np.array([
-    [ # payoffMatrix[0]
-        [1, 2], # payoffMatrix[0][0]
-        [3, 4]  # payoffMatrix[0][1]
+    [
+        [1, 2],
+        [3, 4]
     ],
     [
         [5, 6],
         [7, 8]
     ]
 ])
+arr_2players = [
+    [[1, 5], [2, 6]],
+    [[3, 7], [4, 8]]
+]
 
 arr_3players = np.array([
     [ # player 1's matrices
@@ -619,6 +649,18 @@ arr_3players = np.array([
     ]
 ])
 
+arr_3players = [
+    [
+        [[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]
+    ],
+    [
+        [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]],
+        [[7.1, 8.1, 9.1], [10.1, 11.1, 12.1]]
+    ]
+]
+
+"""FIXME
 arr_5players = np.array([
     [ # player 1's matrices
         [[0, 1], [1, 1]], 
@@ -783,16 +825,18 @@ arr_5players = np.array([
 ])
 """
 
-# G = simGame(2)
-# G.enterPayoffs(arr_2players, 2, [2, 2])
+G = simGame(2)
+G.enterPayoffs(arr_2players, 2, [2, 2])
 # G.removeStrategy(0, 1)
-# G.print()
+G.print()
 
-# H = simGame(3)
-# H.print()
-# print("H:")
-# H.enterPayoffs(arr_3players, 3, [2, 2, 2])
-# H.print()
+H = simGame(3)
+H.print()
+print("arr_3players:")
+print(arr_3players)
+H.enterPayoffs(arr_3players, 3, [2, 2, 2])
+print("H:")
+H.print()
 # H.removeStrategy(0, 1)
 # H.readFromFile("text files/together3.txt")
 # print("G again:")
