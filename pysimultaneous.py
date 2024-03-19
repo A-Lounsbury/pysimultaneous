@@ -232,7 +232,14 @@ class simGame:
                 self.payoffMatrix.append(matrix)
         return
     
-    def enterPayoffs(self, payoffs = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]):
+    def enterPayoffs(self, payoffs = [
+        [
+            [0, 0], [0, 0]
+        ], 
+        [
+            [0, 0], [0, 0]
+        ]
+        ]):
         self.payoffMatrix = payoffs
         
     def isBestResponse(self, p1Strat, p2Strat):
@@ -264,7 +271,7 @@ class simGame:
                     if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getNode[1].payoff:
                         p2BR = False
     
-    def printGame(self):
+    def print(self):
         """Prints the payoff matrix
         """
         if self.numPlayers < 3:
@@ -413,83 +420,50 @@ class simGame:
                             kMatrix[m][i][j] = myList
         print("Done reading from " + fileName)
 
-    def removeStrategy(self, x, s):
+    def removeStrategy(self, player, s):
         """Removes strategy s from player x in the payoff matrix
 
         Args:
-            x (int): index of the player
+            player (int): index of the player
             s (int): index of the strategy
         """
-        if x == 0: # x is player 1
+        if player == 0: # x is player 1
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][s]
-        if x == 1: # x is player 2
+        if player == 1: # x is player 2
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][i][s]
-        else: # x > 1
+        else: # player > 1
+            m = 0
             numErased = 0
             product = 1
-            m = 0
-            end = [0 for i in range(self.numPlayers)]
-            for y in range(self.numPlayers):
-                if y != x:
-                    end[y] = self.players[y].numStrats
-                else:
-                    end[y] = s
-            
-            profile = [0 for i in range(self.numPlayers)]
-            while m < self.self.toIndex(end):
-                profile = self.toProfile(m)
-                profile[x] = s # at start of section
-                num = 1
-                if x < self.numPlayers - 1:
-                    for y in range(2, self.numPlayers):
-                        if y != x:
-                            num *= self.players[y].numStrats
-                elif x == self.numPlayers - 1 and self.numPlayers > 3:
-                    num = self.players[x].numStrats
-                else:
-                    print("Error: unexpected values for x and numPlayers")
+            numPlayersAbove = self.numPlayers - player - 1
+            numPlayersBelow = player - 2
+            curProfile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
+            numStratsSum = 0
+            numStratsSum = sum(self.players[x].numStrats for x in range(player, self.numPlayers))
+            start = numPlayersBelow * numStratsSum
+            print("start:", start)
+            """For each player x, cycle through the sequence of profiles whose hashes correspond to 
+            4, 5, 6, 13, 14, 15, 22, 23, 24, and delete those matrices. 
+            OR, select the first matrix and delete it for each player, then select the second 
+            matrix and delete it for each player, so on and so forth. 
+            The former seems preferable
+            """
+            print("curProfile", curProfile)
+            for x in range(self.numPlayers):
+                # starting at the first profile in the sequence
                 
-                while numErased < num:
-                    del self.payoffMatrix[self.toIndex(profile)]
-                    numErased += 1
+                
+                # continue until...we've deleted the number of matrices we were supposed to delete? Until the profile or the hash of the profile looks a certain way? 
+                k = 0
+                while k < 10:                
+                    # deleting the matrix
                     
-                    # last player's matrices are all lined up; others' must be found
-                    if x < self.numPlayers - 1:
-                        print()
-                        if profile[2] > 0: # simply decrement first number
-                            profile[2] -= 1
-                        else: # go through each succeeding number
-                            y = 2
-                            foundNonzero = False
-                            while True:
-                                profile[y] = self.players[y].numStrats - 1
-                                # not last number and next number is nonzero
-                                if y != self.numPlayers - 1 and profile[y + 1] != 0:
-                                    profile[y + 1] -= 1
-                                    foundNonzero = True
-                                elif y != self.numPlayers - 1 and profile[y + 1] == 0:
-                                    profile[y] = self.players[y].numStrats - 1
-                                elif y == self.numPlayers - 1:
-                                    profile[y] -= 1
-                                y += 1
-                                
-                                if y >= self.numPlayers or profile[y] != 0 or foundNonzero:
-                                    break
-                                
-                        incremented = False
-                        y = 2
-                        while not incremented and y < self.numPlayers:
-                            if y != x:
-                                if profile[y] != self.players[y].numStrats - 1:
-                                    profile[y] += 1
-                                    incremented = True
-                            y += 1
-                if x > 2 and x < self.numPlayers - 1 and product == 1:
-                    for y in range(2, x - 1):
-                        product *= self.players[y].numStrats
-                m += product # move to the next one, which is the first in the next section
+                    k += 1
+                
+                # obtaining the next profile in the sequence
+                
         self.players[x].numStrats -= 1      
     
     def saveToFile(self, fileName):
