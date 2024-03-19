@@ -473,10 +473,16 @@ class simGame:
             """
             # FIXME
             # Starting at the first profile in the sequence
-            for x in range(2, player):
-                product *= self.players[x].numStrats
-            m += product
+            # for x in range(2, player):
+            mySum = 0
+            if s != 0:
+                mySum = sum([self.players[x].numStrats for x in range(2, player)])
+            m += mySum
             print("m:", m)
+            
+            print("HERE: ", [-1, -1] + [0 for x in range(2, player)] + [1] + [0 for x in range(player + 1, self.numPlayers)])
+            m = self.toIndex([-1, -1] + [0 for x in range(2, player)] + [1] + [0 for x in range(player + 1, self.numPlayers)])
+            print("NEW m:", m)
             
             # FIXME: figure out what someNumber should be
             someNumber = len(self.payoffMatrix)
@@ -492,7 +498,6 @@ class simGame:
                 else:
                     print("Error (removeStrategy): player == self.numPlayers - 1 and self.numPlayers == 3.")
                     return
-                print("numDelete:", numToDelete)
                 while numDeleted < numToDelete:                
                     # deleting the matrix
                     del self.payoffMatrix[m]
@@ -500,13 +505,17 @@ class simGame:
                 
                 # FIXME: I'm not sure this is updating m in the way I want it to
                 # obtaining the next profile in the sequence
-                if player > 2 and player < self.numPlayers - 1 and product == 1:
-                    for x in range(2, player - 1):
+                if self.toProfile(m)[player] == self.players[player].numStrats - 1:
+                # if (player > 2 and s > 0) or (player < self.numPlayers - 1 and s < len(self.payoffMatrix) - self.players[self.numPlayers - 1].numStrats):
+                # if player > 2 and player < self.numPlayers - 1 and product == 1:
+                    for x in range(2, player):
                         product *= self.players[x].numStrats
+                else:
+                    product = 1
                 m += product
                 print("new m:", m)
                     
-            self.players[player].numStrats -= 1      
+            # self.players[player].numStrats -= 1      
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
@@ -779,11 +788,11 @@ arr_5players = [
     ]
 ]
 
-G = simGame(2)
+# G = simGame(2)
 # G.enterPayoffs(arr_2players, 2, [2, 2])
 # G.removeStrategy(0, 1)
-G.readFromFile("text files/2.txt")
-G.print()
+# G.readFromFile("text files/2.txt")
+# G.print()
 
 # H = simGame(3)
 # H.print()
@@ -802,26 +811,26 @@ G.print()
 # I.removeStrategy(3, 1)
 # I.print()
 
-# J = simGame(5)
-# J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-# J.removeStrategy(3, 0)
+J = simGame(5)
+J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+J.removeStrategy(3, 1)
 # J.print()
 
-# print("0:", I.toProfile(0))
-# print("1:", I.toProfile(1))
-# print("2:", I.toProfile(2))
-# print("3:", I.toProfile(3))
+# print("0:", J.toProfile(0))
+# print("1:", J.toProfile(1))
+# print("2:", J.toProfile(2))
+# print("3:", J.toProfile(3))
 # print()
 
-# print("4:", I.toProfile(4))
-# print("5:", I.toProfile(5))
-# print("6:", I.toProfile(6))
-# print("13:", I.toProfile(13))
-# print("14:", I.toProfile(14))
-# print("15:", I.toProfile(15))
-# print("22:", I.toProfile(22))
-# print("23:", I.toProfile(23))
-# print("24:", I.toProfile(24))
+print("3:", J.toProfile(3))
+print("4:", J.toProfile(4))
+print("5:", J.toProfile(5))
+print("12:", J.toProfile(12))
+print("13:", J.toProfile(13))
+print("14:", J.toProfile(14))
+print("21:", J.toProfile(21))
+print("22:", J.toProfile(22))
+print("23:", J.toProfile(23))
 
 # print("\nH tests:")
 # print(H.toIndex([-1, -1, 0]))
