@@ -1,6 +1,6 @@
 # pysimultaneous_numpy.py
 # Author: Andrew Lounsbury
-# Date: 3/17/24
+# Date: 3/18/24
 # Description: a class for handling simultaneous games with n players, n >= 2. Payoffs for each player are stored in their own individual numpy array. 
 import numpy as np
 
@@ -193,14 +193,20 @@ class simGame:
                         
                 # FIXME
                 # new matrices added to the end
-                size = 1
-                if self.numPlayers > 2:
-                    for x in range(2, self.numPlayers):
-                        size *= self.players[x].numStrats
-                if size > self.payoffMatrix[0].shape[0]:
-                    self.payoffMatrix += [None] * (size - len(self.payoffMatrix))
-                else:
-                    self.payoffMatrix = self.payoffMatrix[:size]
+                for x in range(self.numPlayers):
+                    size = 1
+                    if self.numPlayers > 2:
+                        for y in range(2, self.numPlayers):
+                            size *= self.players[y].numStrats
+                    if size > self.payoffMatrix[0].shape[0]:
+                        # Creating dimensions of new matrices to concatenate
+                        dimensions = (size - self.payoffMatrix[0].shape[0], self.payoffMatrix[0].shape[1], self.payoffMatrix[0].shape[2])
+                        
+                        # Concatenating the matrices
+                        self.payoffMatrix[x] += [None] * (size - self.payoffMatrix[0].shape[0])
+                        self.payoffMatrix[x] = np.concatenate((self.payoffMatrix[x], np.zeros(dimensions)), axis=0)
+                    else:
+                        self.payoffMatrix[x] = self.payoffMatrix[x][:size]
                 
                 size = 1
                 if self.numPlayers > 2:
@@ -212,7 +218,7 @@ class simGame:
                 
                 # FIXME
                 # creating/deleting entries and reading values
-                for m in range(len(self.payoffMatrix)):
+                for m in range(self.payoffMatrix[0].shape[0]):
                     # resizing p1
                     if self.players[0].numStrats > len(self.payoffMatrix[m]):
                         self.payoffMatrix[m] += [None] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
@@ -264,6 +270,7 @@ class simGame:
             else: # separate
                 return
         print("Done reading from " + fileName)
+        return
 
     def removeStrategy(self, player, s):
         """Removes strategy s from player in the payoff matrix
@@ -272,14 +279,23 @@ class simGame:
             player (int): index of the player
             s (int): index of the strategy
         """
+        # FIXME
         if player == 0: # player is player 1
             for x in range(self.numPlayers):
-                # deleting s-th row from every x-th matrix
-                self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=0)
+                if self.numPlayers < 3:
+                    # deleting s-th row from every x-th matrix
+                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=0)
+                else:
+                    for ar in self.payoffMatrix[x]:
+                        ar = np.delete(ar, s, axis=0)
         elif player == 1: # player is player 2
             for x in range(self.numPlayers):
-                # deleting s-th column from every x-th matrix
-                self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
+                if self.numPlayers < 3:
+                    # deleting s-th column from every x-th matrix
+                    self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], s, axis=1)
+                else:
+                    for ar in self.payoffMatrix[x]:
+                        ar = np.delete(ar, s, axis=1)
         else: # player > 1
             m = 0
             numErased = 0
@@ -291,11 +307,11 @@ class simGame:
             numStratsSum = sum(self.players[x].numStrats for x in range(player, self.numPlayers))
             start = numPlayersBelow * numStratsSum
             print("start:", start)
-            # FIXME
             """For each player x, cycle through the sequence of profiles whose hashes correspond to 
             4, 5, 6, 13, 14, 15, 22, 23, 24, and delete those matrices. 
             OR, select the first matrix and delete it for each player, then select the second 
             matrix and delete it for each player, so on and so forth. 
+            The former seems preferable
             """
             print("curProfile", curProfile)
             for x in range(self.numPlayers):
@@ -481,18 +497,48 @@ class simGame:
             productNumStrats = productNumStrats / self.players[x].numStrats
         return profile
 
+arr_2players = np.array([
+    [ # payoffMatrix[0]
+        [1, 2], # payoffMatrix[0][0]
+        [3, 4]  # payoffMatrix[0][1]
+    ],
+    [
+        [5, 6],
+        [7, 8]
+    ]
+])
+
 arr_3players = np.array([
     [ # player 1's matrices
-        [[1, 1], [1, 1]],
-        [[1.1, 1.1], [1.1, 1.1]]
+      # payoffMatrix[0]
+        [ # payoffMatrix[0][1]
+            [1, 1], # payoffMatrix[0][1][0]
+            [1, 1], # payoffMatrix[0][1][1]
+        ],
+        [
+            [1.1, 1.1],
+            [1.1, 1.1]
+        ]
     ],
     [ # player 2's matrices
-        [[2, 2], [2, 2]],
-        [[2.1, 2.1], [2.1, 2.1]]
+        [
+            [2, 2], 
+            [2, 2]
+        ],
+        [
+            [2.1, 2.1], 
+            [2.1, 2.1]
+        ]
     ],
     [ # player 3's matrices
-        [[3, 3], [3, 3]],
-        [[3.1, 3.1], [3.1, 3.1]]
+        [
+            [3, 3], 
+            [3, 3]
+        ],
+        [
+            [3.1, 3.1], 
+            [3.1, 3.1]
+        ]
     ]
 ])
 
@@ -659,66 +705,72 @@ arr_5players = np.array([
     ],
 ])
 
+# I = simGame(2)
+# I.enterPayoffs(arr_2players, 2, [2, 2])
+# I.removeStrategy(0, 1)
+# I.print()
+
 G = simGame(3)
 # G.print()
 # print("G:")
 G.enterPayoffs(arr_3players, 3, [2, 2, 2])
-# G.print()
-# G.removeStrategy(2, 0)
-# print("G again:")
-# G.print()
+# # G.print()
+G.removeStrategy(0, 1)
+# # G.readFromFile("text files/together3.txt")
+# # print("G again:")
+G.print()
 
-H = simGame(5)
-H.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-# H.removeStrategy(3, 1)
+# H = simGame(5)
+# H.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+# H.removeStrategy(0, 1)
 # H.print()
 
-print("0:", H.toProfile(0))
-print("1:", H.toProfile(1))
-print("2:", H.toProfile(2))
-print("3:", H.toProfile(3))
-print()
+# print("0:", H.toProfile(0))
+# print("1:", H.toProfile(1))
+# print("2:", H.toProfile(2))
+# print("3:", H.toProfile(3))
+# print()
 
-print("4:", H.toProfile(4))
-print("5:", H.toProfile(5))
-print("6:", H.toProfile(6))
-print("13:", H.toProfile(13))
-print("14:", H.toProfile(14))
-print("15:", H.toProfile(15))
-print("22:", H.toProfile(22))
-print("23:", H.toProfile(23))
-print("24:", H.toProfile(24))
+# print("4:", H.toProfile(4))
+# print("5:", H.toProfile(5))
+# print("6:", H.toProfile(6))
+# print("13:", H.toProfile(13))
+# print("14:", H.toProfile(14))
+# print("15:", H.toProfile(15))
+# print("22:", H.toProfile(22))
+# print("23:", H.toProfile(23))
+# print("24:", H.toProfile(24))
 
-print("\nG tests:")
-print(G.toIndex([-1, -1, 0]))
-print(G.toIndex([-1, -1, 1]))
-print()
+# print("\nG tests:")
+# print(G.toIndex([-1, -1, 0]))
+# print(G.toIndex([-1, -1, 1]))
+# print()
 
-print(G.toProfile(0))
-print(G.toProfile(1))
-print()
+# print(G.toProfile(0))
+# print(G.toProfile(1))
+# print()
 
-print("[., ., 0]:", G.toProfile(G.toIndex([-1, -1, 0])))
-print("[., ., 1]:", G.toProfile(G.toIndex([-1, -1, 1])))
-print()
+# print("[., ., 0]:", G.toProfile(G.toIndex([-1, -1, 0])))
+# print("[., ., 1]:", G.toProfile(G.toIndex([-1, -1, 1])))
+# print()
 
-print("0:", G.toIndex(G.toProfile(0)))
-print("1:", G.toIndex(G.toProfile(1)))
+# print("0:", G.toIndex(G.toProfile(0)))
+# print("1:", G.toIndex(G.toProfile(1)))
 
-print("\nH tests:")
-print("0:", H.toIndex(H.toProfile(0)))
-print("1:", H.toIndex(H.toProfile(1)))
-print("2:", H.toIndex(H.toProfile(2)))
-print("3:", H.toIndex(H.toProfile(3)))
-print("4:", H.toIndex(H.toProfile(4)))
-print("5:", H.toIndex(H.toProfile(5)))
-print("6:", H.toIndex(H.toProfile(6)))
-print()
+# print("\nH tests:")
+# print("0:", H.toIndex(H.toProfile(0)))
+# print("1:", H.toIndex(H.toProfile(1)))
+# print("2:", H.toIndex(H.toProfile(2)))
+# print("3:", H.toIndex(H.toProfile(3)))
+# print("4:", H.toIndex(H.toProfile(4)))
+# print("5:", H.toIndex(H.toProfile(5)))
+# print("6:", H.toIndex(H.toProfile(6)))
+# print()
 
-print("[., ., 0, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 0])))
-print("[., ., 1, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 1, 0, 0])))
-print("[., ., 2, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 2, 0, 0])))
-print("[., ., 0, 1, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 1, 0])))
-print("[., ., 0, 2, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 2, 0])))
-print("[., ., 0, 0, 1]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 1])))
-print("[., ., 0, 0, 2]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 2])))
+# print("[., ., 0, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 0])))
+# print("[., ., 1, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 1, 0, 0])))
+# print("[., ., 2, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 2, 0, 0])))
+# print("[., ., 0, 1, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 1, 0])))
+# print("[., ., 0, 2, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 2, 0])))
+# print("[., ., 0, 0, 1]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 1])))
+# print("[., ., 0, 0, 2]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 2])))
