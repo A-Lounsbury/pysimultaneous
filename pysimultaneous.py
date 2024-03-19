@@ -304,7 +304,9 @@ class simGame:
             for i in range(self.players[0].numStrats):
                 for j in range(self.players[1].numStrats):
                     self.payoffMatrix[0][i][j].printLL()
-                    if j == self.players[1].numStrats - 1:
+                    if j < self.players[1].numStrats - 1:
+                            print("  ", end="")
+                    else:
                         print()
             print()
         else:
@@ -312,10 +314,10 @@ class simGame:
                 for i in range(self.players[0].numStrats):
                     for j in range(self.players[1].numStrats):
                         self.payoffMatrix[m][i][j].printLL()
-                        if j == self.players[1].numStrats - 1:
-                            print()
                         if j < self.players[1].numStrats - 1:
                             print("  ", end="")
+                        else:
+                            print()
                 print()
 
     def readFromFile(self, fileName):
@@ -385,7 +387,7 @@ class simGame:
                 for x in range(2, self.numPlayers):
                     size *= self.players[x].numStrats
             if size > len(self.payoffMatrix):
-                self.payoffMatrix += [None] * (size - len(self.payoffMatrix))
+                self.payoffMatrix += [] * (size - len(self.payoffMatrix))
             else:
                 self.payoffMatrix = self.payoffMatrix[:size]
             
@@ -393,26 +395,27 @@ class simGame:
             if self.numPlayers > 2:
                 size = 4 ** (self.numPlayers - 2)
             if size > len(self.kMatrix):
-                self.kMatrix += [None] * (size - len(self.kMatrix))
+                self.kMatrix += [] * (size - len(self.kMatrix))
             else:
                 self.kMatrix = self.kMatrix[:size]
-            
+
             # creating/deleting entries and reading values
             for m in range(len(self.payoffMatrix)):
+                # print("TYPE:", type(self.payoffMatrix[m]))
                 if self.players[0].numStrats > len(self.payoffMatrix[m]):
-                    self.payoffMatrix[m] += [None] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
+                    self.payoffMatrix[m] += [] * (self.players[0].numStrats - len(self.payoffMatrix[m]))
                 else:
                     self.payoffMatrix[m] = self.payoffMatrix[m][:self.players[0].numStrats]
                 for i in range(self.players[0].numStrats):
                     # resizing
                     if self.players[1].numStrats > len(self.payoffMatrix[m][i]):
-                        self.payoffMatrix[m][i] += [None] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
+                        self.payoffMatrix[m][i] += [] * (self.players[1].numStrats - len(self.payoffMatrix[m][i]))
                     else:
                         self.payoffMatrix[m][i] = self.payoffMatrix[m][i][:self.players[1].numStrats]
                     # Reading in the next row of payoffs
                     payoffs = file.readline().split(" ")
                     for payoff in payoffs:
-                        payoff = int(payoff.rstrip())
+                        payoff = float(payoff.rstrip())
                     groupedPayoffs = [payoffs[i:i + self.numPlayers] for i in range(0, len(payoffs), self.numPlayers)]
                     
                     for j in range(self.players[1].numStrats):
@@ -427,7 +430,7 @@ class simGame:
                         
                         for x in range(self.numPlayers):
                             if m < oldSize and x < oldNumPlayers and i < oldNumStrats[0] and j < oldNumStrats[1]: # old matrix, old outcome, old payoff
-                                curList.updateListNode(int(groupedPayoffs[j][x]), x) # inserting payoff value
+                                curList.updateListNode(float(groupedPayoffs[j][x]), x) # inserting payoff value
                             else: # Everything is new
                                 # Adding
                                 curList.appendNode(int(payoffs[x]), False)
@@ -454,6 +457,7 @@ class simGame:
             player (int): index of the player
             s (int): index of the strategy
         """
+        print("removeStrategy(" + str(player) + ", " + str(s) + ")")
         if player == 0: # x is player 1
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][s]
@@ -462,36 +466,47 @@ class simGame:
                 del self.payoffMatrix[m][i][s]
         else: # player > 1
             m = 0
-            numErased = 0
+            numDeleted = 0
             product = 1
-            numPlayersAbove = self.numPlayers - player - 1
-            numPlayersBelow = player - 2
-            curProfile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
-            numStratsSum = 0
-            numStratsSum = sum(self.players[x].numStrats for x in range(player, self.numPlayers))
-            start = numPlayersBelow * numStratsSum
-            print("start:", start)
-            """For each player x, cycle through the sequence of profiles whose hashes correspond to 
-            4, 5, 6, 13, 14, 15, 22, 23, 24, and delete those matrices. 
-            OR, select the first matrix and delete it for each player, then select the second 
-            matrix and delete it for each player, so on and so forth. 
-            The former seems preferable
+            """In this file there's no x to go through, so just cycle through the 
+            matrices and delete the appropriate ones. 
             """
-            print("curProfile", curProfile)
-            for x in range(self.numPlayers):
-                # starting at the first profile in the sequence
-                
-                
-                # continue until...we've deleted the number of matrices we were supposed to delete? Until the profile or the hash of the profile looks a certain way? 
-                k = 0
-                while k < 10:                
+            # FIXME
+            # Starting at the first profile in the sequence
+            for x in range(2, player):
+                product *= self.players[x].numStrats
+            m += product
+            print("m:", m)
+            
+            # FIXME: figure out what someNumber should be
+            someNumber = len(self.payoffMatrix)
+            while m < someNumber:
+                # Getting the number of matrices to be deleted
+                numToDelete = 1
+                if player < self.numPlayers - 1:
+                    for x in range(2, self.numPlayers):
+                        if x != player:
+                            numToDelete *= self.players[x].numStrats
+                elif player == self.numPlayers - 1 and self.numPlayers > 3:
+                    num = self.players[player].numStrats
+                else:
+                    print("Error (removeStrategy): player == self.numPlayers - 1 and self.numPlayers == 3.")
+                    return
+                print("numDelete:", numToDelete)
+                while numDeleted < numToDelete:                
                     # deleting the matrix
-                    
-                    k += 1
+                    del self.payoffMatrix[m]
+                    numDeleted += 1
                 
+                # FIXME: I'm not sure this is updating m in the way I want it to
                 # obtaining the next profile in the sequence
-                
-        self.players[x].numStrats -= 1      
+                if player > 2 and player < self.numPlayers - 1 and product == 1:
+                    for x in range(2, player - 1):
+                        product *= self.players[x].numStrats
+                m += product
+                print("new m:", m)
+                    
+            self.players[player].numStrats -= 1      
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
@@ -580,9 +595,7 @@ class simGame:
         choice = 0
         prevValues = 0 # values from players below P_x
         productNumStrats = 1
-        profile = [0 for x in range(self.numPlayers)]
-        profile[0] = -1
-        profile[1] = -1
+        profile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
         
         for x in range(2, self.numPlayers - 1):
             productNumStrats *= self.players[x].numStrats
@@ -614,6 +627,45 @@ arr_3players = [
         [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]],
         [[7.1, 8.1, 9.1], [10.1, 11.1, 12.1]]
     ]
+]
+
+arr_4players = [
+    [
+        [[0, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[1, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[2, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[3, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[4, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[5, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[6, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[7, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
+    [
+        [[8, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]]
+    ],
 ]
 
 arr_5players = [
@@ -727,10 +779,11 @@ arr_5players = [
     ]
 ]
 
-# G = simGame(2)
+G = simGame(2)
 # G.enterPayoffs(arr_2players, 2, [2, 2])
-# # G.removeStrategy(0, 1)
-# G.print()
+# G.removeStrategy(0, 1)
+G.readFromFile("text files/2.txt")
+G.print()
 
 # H = simGame(3)
 # H.print()
@@ -740,14 +793,19 @@ arr_5players = [
 # print("H:")
 # H.print()
 # H.removeStrategy(0, 1)
-# H.readFromFile("text files/together3.txt")
-# print("G again:")
+# H.readFromFile("text files/3.txt")
+# print("H again:")
 # H.print()
 
-I = simGame(5)
-I.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-# I.removeStrategy(0, 1)
-I.print()
+# I = simGame(4)
+# I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
+# I.removeStrategy(3, 1)
+# I.print()
+
+# J = simGame(5)
+# J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+# J.removeStrategy(3, 0)
+# J.print()
 
 # print("0:", I.toProfile(0))
 # print("1:", I.toProfile(1))
