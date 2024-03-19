@@ -415,7 +415,7 @@ class simGame:
             print("Saved to " + fileName + ".\n")
     
     def toIndex(self, profile):
-        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function toProfile. 
+        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This is the inverse of the function toProfile. 
 
         Args:
             profile (list): strategy profile (indices)
@@ -450,7 +450,7 @@ class simGame:
         return num
     
     def toProfile(self, m):
-        """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index. This should be the inverse of the function hash. 
+        """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index. This is the inverse of the function toIndex. 
 
         Args:
             m (int): the index of the payoff array that we're toProfileing
