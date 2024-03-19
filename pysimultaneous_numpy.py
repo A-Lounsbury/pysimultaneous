@@ -14,7 +14,6 @@ class Player:
 
 class simGame:    
     kMatrix = []
-    impartial = False
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for i in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
     mixedEquilibria = []
@@ -57,7 +56,6 @@ class simGame:
         
         self.numPlayers = numPlayers
         self.payoffMatrix = []
-        self.impartial = False
         
         # Creating dimensions for payoff matrix
         if self.numPlayers < 3:
@@ -71,16 +69,6 @@ class simGame:
         # Appending one matrix of payoffs for each player
         for x in range(self.numPlayers):
             self.payoffMatrix.append(np.zeros(dimensions))
-        return
-    
-    def computeImpartiality(self):
-        """ Checks if players 2,...,numPlayers have the same number of strategies as player 1? 
-        """
-        for x in range(1, self.numPlayers):
-            if self.players[x].numStrats != self.players[0].numStrats:
-                self.impartial = False
-                return
-        impartial = True
         return
     
     def enterPayoffs(self, payoffs, numPlayers = 2, numStrats = [2, 2]):
@@ -133,38 +121,6 @@ class simGame:
                         if self.payoffMatrix[x][self.toIndex(profile)][profile[0]][profile[1]] < self.payoffMatrix[x][self.toIndex(compProfile)][profile[1]][profile[2]]:
                             br[x] = False
         return br
-                        
-    # FIXME
-    def toIndex(self, profile):
-        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function toProfile. 
-
-        Args:
-            profile (list): strategy profile (indices)
-
-        Returns:
-            int: the desired index
-        """
-        self.computeImpartiality() # Checking if players 2,...,numPlayers have the same number of strategies as player 1
-        
-        # c_2 + sum_{x = 3}^{nP - 1} (nS)^x * c_x
-        num = 0 # return 0 if numPlayers < 2
-        if self.numPlayers > 2:
-            num = profile[2]
-        if self.impartial: # if all players have the same number of strategies? 
-            for x in range(3, self.numPlayers):
-                if profile.at(x) > 0:
-                    num += self.players[0] ** (x - 2) * self.profile[x]
-        else: # c_2 + sum_{x=3}^{nP} nS_2 *...* nS_{x-1} * c_x
-            if self.numPlayers > 3:
-                product = 0
-                for x in range(3, self.numPlayers):
-                    product = 1
-                    if profile[x] > 0:
-                        for y in range(2, x - 1):
-                            product *= self.players[y].numStrats
-                            
-                        num += product * profile[x]
-        return num
     
     def print(self):
         """Prints the payoff matrix
@@ -357,9 +313,7 @@ class simGame:
                 
         # Decrement the number of strategies for player
         self.players[player].numStrats -= 1
-        
-        if self.impartial:
-            impartial = False
+
         return
     
     def saveToFile(self, fileName, together=True):
@@ -460,7 +414,41 @@ class simGame:
                 return
             print("Saved to " + fileName + ".\n")
     
-    # FIXME
+    def toIndex(self, profile):
+        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function toProfile. 
+
+        Args:
+            profile (list): strategy profile (indices)
+
+        Returns:
+            int: the desired index
+        """
+        sameNumStratsPastPlayer2 = True
+        # Checking if players 2,...,numPlayers have the same number of strategies as player 3
+        for x in range(2, self.numPlayers):
+            if self.players[x].numStrats != self.players[1].numStrats:
+                self.sameNumStratsPastPlayer2 = False
+        
+        # c_2 + sum_{x = 3}^{nP - 1} (nS)^x * c_x
+        num = 0 # return 0 if self.numPlayers < 3
+        if self.numPlayers > 2:
+            num = profile[2]
+        if sameNumStratsPastPlayer2: # if all players past player 2 have the same number of strategies
+            for x in range(3, self.numPlayers):
+                if profile[x] > 0:
+                    num += (self.players[2].numStrats ** (x - 2)) * profile[x]
+        else: # c_2 + sum_{x=3}^{nP} nS_2 *...* nS_{x-1} * c_x
+            if self.numPlayers > 3:
+                product = 0
+                for x in range(3, self.numPlayers):
+                    product = 1
+                    if profile[x] > 0:
+                        for y in range(2, x - 1):
+                            product *= self.players[y].numStrats
+                            
+                        num += product * profile[x]
+        return num
+    
     def toProfile(self, m):
         """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index. This should be the inverse of the function hash. 
 
@@ -473,7 +461,7 @@ class simGame:
         choice = 0
         prevValues = 0 # values from players below P_x
         productNumStrats = 1
-        profile = [0 for i in range(self.numPlayers)]
+        profile = [0 for x in range(self.numPlayers)]
         profile[0] = -1
         profile[1] = -1
         
