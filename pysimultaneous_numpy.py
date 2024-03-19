@@ -76,12 +76,12 @@ class simGame:
     def computeImpartiality(self):
         """ Checks if players 2,...,numPlayers have the same number of strategies as player 1? 
         """
-        num = self.players[0].numStrats
         for x in range(1, self.numPlayers):
-            if self.players[x].numStrats != num:
+            if self.players[x].numStrats != self.players[0].numStrats:
                 self.impartial = False
                 return
         impartial = True
+        return
     
     def enterPayoffs(self, payoffs, numPlayers = 2, numStrats = [2, 2]):
         """Enters the payoffs into the payoff matrix and updates self.numPlayers and each player's numStrats. 
@@ -121,22 +121,22 @@ class simGame:
             for x in range(self.numPlayers):
                 if x < 2:
                     for i in range(self.players[0].numStrats):
-                        if self.payoffMatrix[0][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[0][self.hash(profile)][i][profile[1]]:
+                        if self.payoffMatrix[0][self.toIndex(profile)][profile[0]][profile[1]] < self.payoffMatrix[0][self.toIndex(profile)][i][profile[1]]:
                             br[0] = False
                     for j in range(self.players[1].numStrats):
-                        if self.payoffMatrix[1][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[1][self.hash(profile)][profile[0]][j]:
+                        if self.payoffMatrix[1][self.toIndex(profile)][profile[0]][profile[1]] < self.payoffMatrix[1][self.toIndex(profile)][profile[0]][j]:
                             br[1] = False
                 else:
                     for m in range(self.payoffMatrix[0].shape[0]):
                         compProfile = profile # "compare profile"
                         compProfile[x] = m
-                        if self.payoffMatrix[x][self.hash(profile)][profile[0]][profile[1]] < self.payoffMatrix[x][self.hash(compProfile)][profile[1]][profile[2]]:
+                        if self.payoffMatrix[x][self.toIndex(profile)][profile[0]][profile[1]] < self.payoffMatrix[x][self.toIndex(compProfile)][profile[1]][profile[2]]:
                             br[x] = False
         return br
                         
     # FIXME
-    def hash(self, profile):
-        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function unhash. 
+    def toIndex(self, profile):
+        """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This should be the inverse of the function toProfile. 
 
         Args:
             profile (list): strategy profile (indices)
@@ -144,13 +144,13 @@ class simGame:
         Returns:
             int: the desired index
         """
-        self.computeImpartiality() # ? 
+        self.computeImpartiality() # Checking if players 2,...,numPlayers have the same number of strategies as player 1
         
         # c_2 + sum_{x = 3}^{nP - 1} (nS)^x * c_x
         num = 0 # return 0 if numPlayers < 2
         if self.numPlayers > 2:
             num = profile[2]
-        if self.impartial:
+        if self.impartial: # if all players have the same number of strategies? 
             for x in range(3, self.numPlayers):
                 if profile.at(x) > 0:
                     num += self.players[0] ** (x - 2) * self.profile[x]
@@ -350,7 +350,7 @@ class simGame:
                 k = 0
                 while k < 10:                
                     # deleting the matrix
-                    # self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], self.hash(curProfile), axis=2)
+                    # self.payoffMatrix[x] = np.delete(self.payoffMatrix[x], self.toIndex(curProfile), axis=2)
                     k += 1
                 
                 # obtaining the next profile in the sequence
@@ -461,11 +461,11 @@ class simGame:
             print("Saved to " + fileName + ".\n")
     
     # FIXME
-    def unhash(self, m):
+    def toProfile(self, m):
         """Converts an index in a stack of payoff arrays into the sequence of strategies that produce that index. This should be the inverse of the function hash. 
 
         Args:
-            m (int): the index of the payoff array that we're unhashing
+            m (int): the index of the payoff array that we're toProfileing
 
         Returns:
             list: a list of indices (strategies)
@@ -510,6 +510,7 @@ arr_3players = np.array([
 
 arr_5players = np.array([
     [ # player 1's matrices
+        [[0, 1], [1, 1]], 
         [[1, 1], [1, 1]], 
         [[2, 1], [1, 1]], 
         [[3, 1], [1, 1]], 
@@ -518,8 +519,8 @@ arr_5players = np.array([
         [[6, 1], [1, 1]], 
         [[7, 1], [1, 1]], 
         [[8, 1], [1, 1]], 
-        [[9, 1], [1, 1]], 
         
+        [[9, 1], [1, 1]], 
         [[10, 1], [1, 1]], 
         [[11, 1], [1, 1]], 
         [[12, 1], [1, 1]], 
@@ -528,8 +529,8 @@ arr_5players = np.array([
         [[15, 1], [1, 1]], 
         [[16, 1], [1, 1]], 
         [[17, 1], [1, 1]], 
-        [[18, 1], [1, 1]], 
         
+        [[18, 1], [1, 1]], 
         [[19, 1], [1, 1]], 
         [[20, 1], [1, 1]], 
         [[21, 1], [1, 1]], 
@@ -537,11 +538,11 @@ arr_5players = np.array([
         [[23, 1], [1, 1]], 
         [[24, 1], [1, 1]], 
         [[25, 1], [1, 1]], 
-        [[26, 1], [1, 1]], 
-        [[27, 1], [1, 1]]
+        [[26, 1], [1, 1]]
         
     ],
     [ # player 2's matrices
+        [[27, 1], [1, 1]],
         [[28, 2], [2, 2]], 
         [[29, 2], [2, 2]], 
         [[30, 2], [2, 2]], 
@@ -550,8 +551,8 @@ arr_5players = np.array([
         [[33, 2], [2, 2]], 
         [[34, 2], [2, 2]], 
         [[35, 2], [2, 2]], 
-        [[36, 2], [2, 2]], 
         
+        [[36, 2], [2, 2]], 
         [[37, 2], [2, 2]], 
         [[38, 2], [2, 2]], 
         [[39, 2], [2, 2]], 
@@ -560,8 +561,8 @@ arr_5players = np.array([
         [[42, 2], [2, 2]], 
         [[43, 2], [2, 2]], 
         [[44, 2], [2, 2]], 
-        [[45, 2], [2, 2]], 
         
+        [[45, 2], [2, 2]],
         [[46, 2], [2, 2]], 
         [[47, 2], [2, 2]], 
         [[48, 2], [2, 2]], 
@@ -569,11 +570,11 @@ arr_5players = np.array([
         [[50, 2], [2, 2]], 
         [[51, 2], [2, 2]], 
         [[52, 2], [2, 2]], 
-        [[53, 2], [2, 2]], 
-        [[54, 2], [2, 2]]
+        [[53, 2], [2, 2]]
         
     ],
     [ # player 3's matrices
+        [[54, 2], [2, 2]],
         [[55, 3], [3, 3]], 
         [[56, 3], [3, 3]], 
         [[57, 3], [3, 3]], 
@@ -582,8 +583,8 @@ arr_5players = np.array([
         [[60, 3], [3, 3]], 
         [[61, 3], [3, 3]], 
         [[62, 3], [3, 3]], 
-        [[63, 3], [3, 3]], 
         
+        [[63, 3], [3, 3]], 
         [[64, 3], [3, 3]], 
         [[65, 3], [3, 3]], 
         [[66, 3], [3, 3]], 
@@ -592,8 +593,8 @@ arr_5players = np.array([
         [[69, 3], [3, 3]], 
         [[70, 3], [3, 3]], 
         [[71, 3], [3, 3]], 
-        [[72, 3], [3, 3]], 
         
+        [[72, 3], [3, 3]], 
         [[73, 3], [3, 3]], 
         [[74, 3], [3, 3]], 
         [[75, 3], [3, 3]], 
@@ -601,11 +602,11 @@ arr_5players = np.array([
         [[77, 3], [3, 3]], 
         [[78, 3], [3, 3]], 
         [[79, 3], [3, 3]], 
-        [[80, 3], [3, 3]], 
-        [[81, 3], [3, 3]]
+        [[80, 3], [3, 3]]
         
     ],
     [ # player 4's matrices
+        [[81, 3], [3, 3]],
         [[82, 4], [4, 4]], 
         [[83, 4], [4, 4]], 
         [[84, 4], [4, 4]], 
@@ -614,8 +615,8 @@ arr_5players = np.array([
         [[87, 4], [4, 4]], 
         [[88, 4], [4, 4]], 
         [[89, 4], [4, 4]], 
-        [[90, 4], [4, 4]], 
         
+        [[90, 4], [4, 4]],
         [[91, 4], [4, 4]], 
         [[92, 4], [4, 4]], 
         [[93, 4], [4, 4]], 
@@ -624,8 +625,8 @@ arr_5players = np.array([
         [[96, 4], [4, 4]], 
         [[97, 4], [4, 4]], 
         [[98, 4], [4, 4]], 
-        [[99, 4], [4, 4]], 
         
+        [[99, 4], [4, 4]], 
         [[100, 4], [4, 4]], 
         [[101, 4], [4, 4]], 
         [[102, 4], [4, 4]], 
@@ -633,11 +634,11 @@ arr_5players = np.array([
         [[104, 4], [4, 4]], 
         [[105, 4], [4, 4]], 
         [[106, 4], [4, 4]], 
-        [[107, 4], [4, 4]], 
-        [[108, 4], [4, 4]]
+        [[107, 4], [4, 4]]
         
     ],
     [ # player 5's matrices
+        [[108, 4], [4, 4]],
         [[109, 5], [5, 5]], 
         [[110, 5], [5, 5]], 
         [[111, 5], [5, 5]], 
@@ -645,9 +646,9 @@ arr_5players = np.array([
         [[113, 5], [5, 5]], 
         [[114, 5], [5, 5]], 
         [[115, 5], [5, 5]], 
-        [[116, 5], [5, 5]], 
+        [[116, 5], [5, 5]],
+         
         [[117, 5], [5, 5]], 
-        
         [[118, 5], [5, 5]], 
         [[119, 5], [5, 5]], 
         [[120, 5], [5, 5]], 
@@ -656,8 +657,8 @@ arr_5players = np.array([
         [[123, 5], [5, 5]], 
         [[124, 5], [5, 5]], 
         [[125, 5], [5, 5]], 
-        [[126, 5], [5, 5]], 
         
+        [[126, 5], [5, 5]], 
         [[127, 5], [5, 5]], 
         [[128, 5], [5, 5]], 
         [[129, 5], [5, 5]], 
@@ -665,16 +666,15 @@ arr_5players = np.array([
         [[131, 5], [5, 5]], 
         [[132, 5], [5, 5]], 
         [[133, 5], [5, 5]], 
-        [[134, 5], [5, 5]], 
-        [[135, 5], [5, 5]]
+        [[134, 5], [5, 5]]
         
     ],
 ])
 
-# G = simGame(3)
+G = simGame(3)
 # G.print()
 # print("G:")
-# G.enterPayoffs(arr_3players, 3, [2, 2, 2])
+G.enterPayoffs(arr_3players, 3, [2, 2, 2])
 # G.print()
 # G.removeStrategy(2, 0)
 # print("G again:")
@@ -682,39 +682,55 @@ arr_5players = np.array([
 
 H = simGame(5)
 H.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-H.removeStrategy(3, 1)
+# H.removeStrategy(3, 1)
 # H.print()
 
-print("1:", H.unhash(1))
-print("2:", H.unhash(2))
-print("3:", H.unhash(3))
+print("0:", H.toProfile(0))
+print("1:", H.toProfile(1))
+print("2:", H.toProfile(2))
+print("3:", H.toProfile(3))
 print()
 
-print("4:", H.unhash(4))
-print("5:", H.unhash(5))
-print("6:", H.unhash(6))
-print("13:", H.unhash(13))
-print("14:", H.unhash(14))
-print("15:", H.unhash(15))
-print("22:", H.unhash(22))
-print("23:", H.unhash(23))
-print("24:", H.unhash(24))
+print("4:", H.toProfile(4))
+print("5:", H.toProfile(5))
+print("6:", H.toProfile(6))
+print("13:", H.toProfile(13))
+print("14:", H.toProfile(14))
+print("15:", H.toProfile(15))
+print("22:", H.toProfile(22))
+print("23:", H.toProfile(23))
+print("24:", H.toProfile(24))
 
-print("inverses:")
-print("1:", H.hash(H.unhash(1)))
-print("2:", H.hash(H.unhash(2)))
-print("3:", H.hash(H.unhash(3)))
-print("4:", H.hash(H.unhash(4)))
-print("5:", H.hash(H.unhash(5)))
-print("6:", H.hash(H.unhash(6)))
-print("13:", H.hash(H.unhash(13)))
-print("14:", H.hash(H.unhash(14)))
-print("15:", H.hash(H.unhash(15)))
-print("22:", H.hash(H.unhash(22)))
-print("23:", H.hash(H.unhash(23)))
-print("24:", H.hash(H.unhash(24)))
+print("\nG tests:")
+print(G.toIndex([-1, -1, 0]))
+print(G.toIndex([-1, -1, 1]))
 print()
 
-print("1:", H.unhash(H.hash([-1, -1, 1, 0, 0])))
-print("2:", H.unhash(H.hash([-1, -1, 2, 0, 0])))
-print("3:", H.unhash(H.hash([-1, -1, 0, 1, 0])))
+print(G.toProfile(0))
+print(G.toProfile(1))
+print()
+
+print("[., ., 0]:", G.toProfile(G.toIndex([-1, -1, 0])))
+print("[., ., 1]:", G.toProfile(G.toIndex([-1, -1, 1])))
+print()
+
+print("0:", G.toIndex(G.toProfile(0)))
+print("1:", G.toIndex(G.toProfile(1)))
+
+print("\nH tests:")
+print("0:", H.toIndex(H.toProfile(0)))
+print("1:", H.toIndex(H.toProfile(1)))
+print("2:", H.toIndex(H.toProfile(2)))
+print("3:", H.toIndex(H.toProfile(3)))
+print("4:", H.toIndex(H.toProfile(4)))
+print("5:", H.toIndex(H.toProfile(5)))
+print("6:", H.toIndex(H.toProfile(6)))
+print()
+
+print("[., ., 0, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 0])))
+print("[., ., 1, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 1, 0, 0])))
+print("[., ., 2, 0, 0]:", H.toProfile(H.toIndex([-1, -1, 2, 0, 0])))
+print("[., ., 0, 1, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 1, 0])))
+print("[., ., 0, 2, 0]:", H.toProfile(H.toIndex([-1, -1, 0, 2, 0])))
+print("[., ., 0, 0, 1]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 1])))
+print("[., ., 0, 0, 2]:", H.toProfile(H.toIndex([-1, -1, 0, 0, 2])))
