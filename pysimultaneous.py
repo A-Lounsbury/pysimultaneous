@@ -471,51 +471,48 @@ class simGame:
             """In this file there's no x to go through, so just cycle through the 
             matrices and delete the appropriate ones. 
             """
-            # FIXME
             # Starting at the first profile in the sequence
-            # for x in range(2, player):
-            mySum = 0
-            if s != 0:
-                mySum = sum([self.players[x].numStrats for x in range(2, player)])
-            m += mySum
-            print("m:", m)
+            firstProfile = [0 for x in range(self.numPlayers)]
+            firstProfile[player] = s
+            m = self.toIndex(firstProfile)
             
-            print("HERE: ", [-1, -1] + [0 for x in range(2, player)] + [1] + [0 for x in range(player + 1, self.numPlayers)])
-            m = self.toIndex([-1, -1] + [0 for x in range(2, player)] + [1] + [0 for x in range(player + 1, self.numPlayers)])
-            print("NEW m:", m)
+            # lastProfile = [-1, -1] + [self.players[x].numStrats - 1 for x in range(2, self.numPlayers)]
+            # lastProfile[player] = s
             
-            # FIXME: figure out what someNumber should be
-            someNumber = len(self.payoffMatrix)
-            while m < someNumber:
-                # Getting the number of matrices to be deleted
-                numToDelete = 1
-                if player < self.numPlayers - 1:
-                    for x in range(2, self.numPlayers):
-                        if x != player:
-                            numToDelete *= self.players[x].numStrats
-                elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                    num = self.players[player].numStrats
-                else:
-                    print("Error (removeStrategy): player == self.numPlayers - 1 and self.numPlayers == 3.")
-                    return
-                while numDeleted < numToDelete:                
-                    # deleting the matrix
-                    del self.payoffMatrix[m]
-                    numDeleted += 1
+            # Getting the number of matrices to be deleted
+            numToDelete = 1
+            if player < self.numPlayers - 1:
+                for x in range(2, self.numPlayers):
+                    if x != player:
+                        numToDelete *= self.players[x].numStrats
+            elif player == self.numPlayers - 1 and self.numPlayers > 3:
+                num = self.players[player].numStrats
+            else:
+                print("Error (removeStrategy): player == self.numPlayers - 1 and self.numPlayers == 3.")
+                return
+            
+            numDeleted = 0
+            while numDeleted < numToDelete:
+                del self.payoffMatrix[m - numDeleted]
+                numDeleted += 1
                 
-                # FIXME: I'm not sure this is updating m in the way I want it to
                 # obtaining the next profile in the sequence
-                if self.toProfile(m)[player] == self.players[player].numStrats - 1:
-                # if (player > 2 and s > 0) or (player < self.numPlayers - 1 and s < len(self.payoffMatrix) - self.players[self.numPlayers - 1].numStrats):
-                # if player > 2 and player < self.numPlayers - 1 and product == 1:
+                allBelowPlayerAtMaxStrat = True
+                mProfile = self.toProfile(m)
+                for x in range(2, player):
+                    if mProfile[x] != self.players[x].numStrats - 1:
+                        allBelowPlayerAtMaxStrat = False
+                if mProfile[player] == s and allBelowPlayerAtMaxStrat:
+                    productBelowPlayer = 1
                     for x in range(2, player):
-                        product *= self.players[x].numStrats
+                        productBelowPlayer *= self.players[x].numStrats
+                    product += productBelowPlayer * (self.players[player].numStrats - 1)
+                    print("PRODUCT:", product)
                 else:
                     product = 1
                 m += product
-                print("new m:", m)
                     
-            # self.players[player].numStrats -= 1      
+            self.players[player].numStrats -= 1      
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
@@ -814,7 +811,7 @@ arr_5players = [
 J = simGame(5)
 J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
 J.removeStrategy(3, 1)
-# J.print()
+J.print()
 
 # print("0:", J.toProfile(0))
 # print("1:", J.toProfile(1))
