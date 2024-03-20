@@ -94,7 +94,6 @@ class ListNode:
                 print(curNode.payoff, end=", ")
             else:
                 print(curNode.payoff, end=" ")
-            # print("PRINTLL: ", curNode.payoff)
             curNode = curNode.next
             x += 1
             
@@ -164,7 +163,7 @@ class Player:
 class simGame:    
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
-    kStrategies = [[] for i in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
+    kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
     mixedEquilibria = []
     numPlayers = -1
     payoffMatrix = []
@@ -310,9 +309,13 @@ class simGame:
                         print()
             print()
         else:
+            print("LEN:", len(self.payoffMatrix))
             for m in range(len(self.payoffMatrix)):
+                print("A")
                 for i in range(self.players[0].numStrats):
+                    print("B")
                     for j in range(self.players[1].numStrats):
+                        print("C")
                         self.payoffMatrix[m][i][j].printLL()
                         if j < self.players[1].numStrats - 1:
                             print("  ", end="")
@@ -457,13 +460,13 @@ class simGame:
             player (int): index of the player
             s (int): index of the strategy
         """
-        print("removeStrategy(" + str(player) + ", " + str(s) + ")")
         if player == 0: # x is player 1
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][s]
         if player == 1: # x is player 2
             for m in range(len(self.payoffMatrix)):
-                del self.payoffMatrix[m][i][s]
+                for i in range(len(self.payoffMatrix[m])):
+                    del self.payoffMatrix[m][i][s]
         else: # player > 1
             m = 0
             numDeleted = 0
@@ -481,15 +484,9 @@ class simGame:
             
             # Getting the number of matrices to be deleted
             numToDelete = 1
-            if player < self.numPlayers - 1:
-                for x in range(2, self.numPlayers):
-                    if x != player:
-                        numToDelete *= self.players[x].numStrats
-            elif player == self.numPlayers - 1 and self.numPlayers > 3:
-                num = self.players[player].numStrats
-            else:
-                print("Error (removeStrategy): player == self.numPlayers - 1 and self.numPlayers == 3.")
-                return
+            for x in range(2, self.numPlayers):
+                if x != player:
+                    numToDelete *= self.players[x].numStrats
             
             numDeleted = 0
             while numDeleted < numToDelete:
@@ -497,22 +494,23 @@ class simGame:
                 numDeleted += 1
                 
                 # obtaining the next profile in the sequence
-                allBelowPlayerAtMaxStrat = True
-                mProfile = self.toProfile(m)
-                for x in range(2, player):
-                    if mProfile[x] != self.players[x].numStrats - 1:
-                        allBelowPlayerAtMaxStrat = False
-                if mProfile[player] == s and allBelowPlayerAtMaxStrat:
-                    productBelowPlayer = 1
-                    for x in range(2, player):
-                        productBelowPlayer *= self.players[x].numStrats
-                    product += productBelowPlayer * (self.players[player].numStrats - 1)
-                    print("PRODUCT:", product)
+                if player == 2 and self.numPlayers > 3:
+                    product = self.players[player].numStrats
                 else:
-                    product = 1
+                    allBelowPlayerAtMaxStrat = True
+                    mProfile = self.toProfile(m)
+                    for x in range(2, player):
+                        if mProfile[x] != self.players[x].numStrats - 1:
+                            allBelowPlayerAtMaxStrat = False
+                    if mProfile[player] == s and allBelowPlayerAtMaxStrat:
+                        productBelowPlayer = 1
+                        for x in range(2, player):
+                            productBelowPlayer *= self.players[x].numStrats
+                        product += productBelowPlayer * (self.players[player].numStrats - 1)
+                    else:
+                        product = 1
                 m += product
-                    
-            self.players[player].numStrats -= 1      
+        self.players[player].numStrats -= 1      
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
@@ -810,7 +808,8 @@ arr_5players = [
 
 J = simGame(5)
 J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-J.removeStrategy(3, 1)
+J.removeStrategy(0, 1)
+print("J:")
 J.print()
 
 # print("0:", J.toProfile(0))
@@ -819,15 +818,15 @@ J.print()
 # print("3:", J.toProfile(3))
 # print()
 
-print("3:", J.toProfile(3))
-print("4:", J.toProfile(4))
-print("5:", J.toProfile(5))
-print("12:", J.toProfile(12))
-print("13:", J.toProfile(13))
-print("14:", J.toProfile(14))
-print("21:", J.toProfile(21))
-print("22:", J.toProfile(22))
-print("23:", J.toProfile(23))
+# print("3:", J.toProfile(3))
+# print("4:", J.toProfile(4))
+# print("5:", J.toProfile(5))
+# print("12:", J.toProfile(12))
+# print("13:", J.toProfile(13))
+# print("14:", J.toProfile(14))
+# print("21:", J.toProfile(21))
+# print("22:", J.toProfile(22))
+# print("23:", J.toProfile(23))
 
 # print("\nH tests:")
 # print(H.toIndex([-1, -1, 0]))
