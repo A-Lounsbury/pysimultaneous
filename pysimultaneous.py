@@ -309,13 +309,9 @@ class simGame:
                         print()
             print()
         else:
-            print("LEN:", len(self.payoffMatrix))
             for m in range(len(self.payoffMatrix)):
-                print("A")
                 for i in range(self.players[0].numStrats):
-                    print("B")
                     for j in range(self.players[1].numStrats):
-                        print("C")
                         self.payoffMatrix[m][i][j].printLL()
                         if j < self.players[1].numStrats - 1:
                             print("  ", end="")
@@ -461,9 +457,13 @@ class simGame:
             s (int): index of the strategy
         """
         if player == 0: # x is player 1
+            print("HERE")
             for m in range(len(self.payoffMatrix)):
+                print("m:", m)
+                print("row:", self.payoffMatrix[m][s])
                 del self.payoffMatrix[m][s]
-        if player == 1: # x is player 2
+                print("LENGTH:", len(self.payoffMatrix))
+        elif player == 1: # x is player 2
             for m in range(len(self.payoffMatrix)):
                 for i in range(len(self.payoffMatrix[m])):
                     del self.payoffMatrix[m][i][s]
@@ -783,34 +783,27 @@ arr_5players = [
     ]
 ]
 
-# G = simGame(2)
-# G.enterPayoffs(arr_2players, 2, [2, 2])
-# G.removeStrategy(0, 1)
-# G.readFromFile("text files/2.txt")
-# G.print()
+G = simGame(2)
+G.enterPayoffs(arr_2players, 2, [2, 2])
+G.print()
+G.removeStrategy(0, 0)
+G.print()
 
 # H = simGame(3)
-# H.print()
-# print("arr_3players:")
-# print(arr_3players)
 # H.enterPayoffs(arr_3players, 3, [2, 2, 2])
-# print("H:")
-# H.print()
 # H.removeStrategy(0, 1)
-# H.readFromFile("text files/3.txt")
-# print("H again:")
 # H.print()
 
 # I = simGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
-# I.removeStrategy(3, 1)
+# I.removeStrategy(0, 1)
 # I.print()
 
-J = simGame(5)
-J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-J.removeStrategy(0, 1)
-print("J:")
-J.print()
+# J = simGame(5)
+# J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+# J.removeStrategy(0, 1)
+# print("J:")
+# J.print()
 
 # print("0:", J.toProfile(0))
 # print("1:", J.toProfile(1))
