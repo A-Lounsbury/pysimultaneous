@@ -3,6 +3,8 @@
 # Date: 3/21/24
 # Description: a class for handling simultaneous games with n players, n >= 2
 from itertools import chain
+import numpy as np
+from numpy.polynomial import Polynomial
 
 class ListNode:
     head = None
@@ -357,7 +359,41 @@ class SimGame:
                         print("THERE br: ", br)
                         for x in range(self.numPlayers):
                             self.payoffMatrix[m][i][j].getListNode(x).bestResponse = br[x]
-    
+
+    def computeEquilibria(self):
+        return self.computePureEquilibria() + self.computeMixedEquilibria()
+
+    def computeMixedEquilibria(self):
+        if self.numPlayers < 3 and [self.players[x].numStrats for x in range(self.numPlayers)] == [2, 2]:
+            # getting the coefficients for EU_U
+            EU_U_coef = [self.payoffMatrix[0][0][j].getListNode(0).payoff for j in range(self.players[1].numStrats)]
+            print(EU_U_coef)
+            # getting the coefficients for EU_D
+            EU_D_coef = [self.payoffMatrix[0][1][j].getListNode(0).payoff for j in range(self.players[1].numStrats)]
+            print(EU_D_coef)
+            # getting the coefficients for EU_L
+            EU_L_coef = [self.payoffMatrix[0][i][0].getListNode(1).payoff for i in range(self.players[0].numStrats)]
+            print(EU_L_coef)
+            # getting the coefficients for EU_R
+            EU_R_coef = [self.payoffMatrix[0][i][1].getListNode(1).payoff for i in range(self.players[0].numStrats)]
+            print(EU_R_coef)
+            
+            p = np.polynomial.Polynomial([0, 1], symbol='p')
+            q = np.polynomial.Polynomial([0, 1], symbol='q')
+            
+            EU_U = EU_U_coef[0] * q + EU_U_coef[1] * (1 - q)
+            EU_D = EU_D_coef[0] * q + EU_D_coef[1] * (1 - q)
+            EU_L = EU_L_coef[0] * p + EU_L_coef[1] * (1 - p)
+            EU_R = EU_R_coef[0] * p + EU_R_coef[1] * (1 - p)
+            
+            diff1 = EU_U - EU_D
+            diff2 = EU_L - EU_R
+            return [[float(np.roots(np.flip(diff1.coef))), float(np.roots(np.flip(diff2.coef)))]]
+            
+        else:
+            return []
+        return
+ 
     def computePureEquilibria(self):
         self.computeBestResponses()
         
@@ -985,20 +1021,27 @@ arr_5players = [
     ]
 ]
 
+
+
 G = SimGame(2)
-G.enterPayoffs(arr_2players, 2, [2, 2])
+G.enterPayoffs(bos, 2, [2, 2])
 G.print()
-G.computeBestResponses()
+# G.computeBestResponses()
 # eqs = G.computePureEquilibria()
-G.printBestResponses()
+# G.printBestResponses()
 
 # for eq in eqs:
 #     print(eq)
 
-H = SimGame(3)
-H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
-H.computeBestResponses()
-H.printBestResponses()
+print(G.computeMixedEquilibria())
+eqs = G.computeEquilibria()
+for eq in eqs:
+    print(eq)
+
+# H = SimGame(3)
+# H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
+# H.computeBestResponses()
+# H.printBestResponses()
 
 # I = SimGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
@@ -1007,6 +1050,6 @@ H.printBestResponses()
 
 # J = SimGame(5)
 # J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
-# J.removeStrategy(0, 1)
+# J.removeStrategy(2, 0)
 # print("J:")
 # J.print()
