@@ -267,12 +267,14 @@ class SimGame:
                     for i2 in [k for k in range(self.players[0].numStrats) if k != i]:
                         if self.payoffMatrix[m][i][j].getListNode(0).payoff < self.payoffMatrix[m][i2][j].getListNode(0).payoff:
                             self.payoffMatrix[m][i][j].getListNode(0).bestResponse = False
+                            break
                     
                     # Computing player 2's BR
                     self.payoffMatrix[m][i][j].getListNode(1).bestResponse = True
                     for j2 in [k for k in range(self.players[1].numStrats) if k != j]:
                         if self.payoffMatrix[m][i][j].getListNode(1).payoff < self.payoffMatrix[m][i][j2].getListNode(1).payoff:
                             self.payoffMatrix[m][i][j].getListNode(1).bestResponse = False
+                            break
                     
                     # Computing players 3,...,numPlayers' BR
                     for x in range(self.numPlayers):
@@ -293,7 +295,8 @@ class SimGame:
                         while numCompared < numToCompare:
                             if m != m2:
                                 if self.payoffMatrix[m][i][j].getListNode(x).payoff < self.payoffMatrix[m2][i][j].getListNode(x).payoff:
-                                    self.payoffMatrix[m][i][j].getListNode(x).bestResponse = False    
+                                    self.payoffMatrix[m][i][j].getListNode(x).bestResponse = False  
+                                    break  
                                 numCompared += 1
                             
                                 # obtaining the next profile in the sequence
