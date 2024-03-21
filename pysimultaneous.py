@@ -177,8 +177,10 @@ class simGame:
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
+    maxRationality = 4
     mixedEquilibria = []
     numPlayers = -1
+    outcomeProbabilities = [] # probability of each outcome in kMatrix stored in kOutcomes; P(s_i, s_j)
     payoffMatrix = []
     players = []
     pureEquilibria = []
@@ -812,53 +814,3 @@ arr_5players = [
 # J.removeStrategy(0, 1)
 # print("J:")
 # J.print()
-
-# print("0:", J.toProfile(0))
-# print("1:", J.toProfile(1))
-# print("2:", J.toProfile(2))
-# print("3:", J.toProfile(3))
-# print()
-
-# print("3:", J.toProfile(3))
-# print("4:", J.toProfile(4))
-# print("5:", J.toProfile(5))
-# print("12:", J.toProfile(12))
-# print("13:", J.toProfile(13))
-# print("14:", J.toProfile(14))
-# print("21:", J.toProfile(21))
-# print("22:", J.toProfile(22))
-# print("23:", J.toProfile(23))
-
-# print("\nH tests:")
-# print(H.toIndex([-1, -1, 0]))
-# print(H.toIndex([-1, -1, 1]))
-# print()
-
-# print(H.toProfile(0))
-# print(H.toProfile(1))
-# print()
-
-# print("[., ., 0]:", H.toProfile(H.toIndex([-1, -1, 0])))
-# print("[., ., 1]:", H.toProfile(H.toIndex([-1, -1, 1])))
-# print()
-
-# print("0:", H.toIndex(H.toProfile(0)))
-# print("1:", H.toIndex(H.toProfile(1)))
-
-# print("\nI tests:")
-# print("0:", I.toIndex(I.toProfile(0)))
-# print("1:", I.toIndex(I.toProfile(1)))
-# print("2:", I.toIndex(I.toProfile(2)))
-# print("3:", I.toIndex(I.toProfile(3)))
-# print("4:", I.toIndex(I.toProfile(4)))
-# print("5:", I.toIndex(I.toProfile(5)))
-# print("6:", I.toIndex(I.toProfile(6)))
-# print()
-
-# print("[., ., 0, 0, 0]:", I.toProfile(I.toIndex([-1, -1, 0, 0, 0])))
-# print("[., ., 1, 0, 0]:", I.toProfile(I.toIndex([-1, -1, 1, 0, 0])))
-# print("[., ., 2, 0, 0]:", I.toProfile(I.toIndex([-1, -1, 2, 0, 0])))
-# print("[., ., 0, 1, 0]:", I.toProfile(I.toIndex([-1, -1, 0, 1, 0])))
-# print("[., ., 0, 2, 0]:", I.toProfile(I.toIndex([-1, -1, 0, 2, 0])))
-# print("[., ., 0, 0, 1]:", I.toProfile(I.toIndex([-1, -1, 0, 0, 1])))
-# print("[., ., 0, 0, 2]:", I.toProfile(I.toIndex([-1, -1, 0, 0, 2])))
