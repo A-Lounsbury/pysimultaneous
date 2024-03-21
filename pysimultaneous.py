@@ -14,6 +14,7 @@ class ListNode:
         self.payoff = payoff
         self.bestResponse = False
         self.next = None
+        return
 
     def append(self, payoff, bestResponse):
         """Appends a new node to the end of the linked list
@@ -32,6 +33,7 @@ class ListNode:
             curNode = curNode.next
         
         curNode.next = newNode
+        return
         
     def getListNode(self, index):
         """Gets the index-th node in the linked list
@@ -58,6 +60,7 @@ class ListNode:
                 return curNode
             else:
                 print("Index not present")
+        return
 
     def insertAtBeginning(self, payoff, bestResponse):
         newNode = ListNode(payoff, bestResponse)
@@ -67,6 +70,7 @@ class ListNode:
         else:
             newNode.next = self.head
             self.head = newNode
+        return
             
     def insertAtIndex(self, data, index):
         newNode = ListNode(data)
@@ -84,6 +88,7 @@ class ListNode:
                 curNode.next = newNode
             else:
                 print("Index not present")
+        return
         
     def pop(self):
         """Removes the last node from the linked list
@@ -96,6 +101,7 @@ class ListNode:
             curNode = curNode.next
     
         curNode.next = None
+        return
                 
     def print(self):
         curNode = self.head
@@ -108,6 +114,7 @@ class ListNode:
                 print(curNode.payoff, end=" ")
             curNode = curNode.next
             x += 1
+        return
             
     def printListNode(self, end=""):
         print(self.payoff, end="")
@@ -130,6 +137,7 @@ class ListNode:
                 curNode.next = curNode.next.next
             else:
                 print("Index not present")
+        return
                 
     def decapitate(self):
         """Removes the head ListNode
@@ -138,6 +146,7 @@ class ListNode:
             return
         
         self.head = self.head.next
+        return
     
     def size(self):
         size = 0
@@ -164,6 +173,7 @@ class ListNode:
                 curNode.payoff = val
             else:
                 print("Index not present")
+        return
 
 class Player:
     numStrats = -1
@@ -245,6 +255,64 @@ class SimGame:
                         row.append(outcome)                 
                     matrix.append(row)
                 self.payoffMatrix.append(matrix)
+        return
+    
+    def computeBestResponses(self):
+        # Cycling through each outcome
+        for m in range(len(self.payoffMatrix)):
+            for i in range(self.players[0].numStrats):
+                for j in range(self.players[1].numStrats):
+                    # Computing player 1's BR
+                    self.payoffMatrix[m][i][j].getListNode(0).bestResponse = True
+                    for i2 in [k for k in range(self.players[0].numStrats) if k != i]:
+                        if self.payoffMatrix[m][i][j].getListNode(0).payoff < self.payoffMatrix[m][i2][j].getListNode(0).payoff:
+                            self.payoffMatrix[m][i][j].getListNode(0).bestResponse = False
+                    
+                    # Computing player 2's BR
+                    self.payoffMatrix[m][i][j].getListNode(1).bestResponse = True
+                    for j2 in [k for k in range(self.players[1].numStrats) if k != j]:
+                        if self.payoffMatrix[m][i][j].getListNode(1).payoff < self.payoffMatrix[m][i][j2].getListNode(1).payoff:
+                            self.payoffMatrix[m][i][j].getListNode(1).bestResponse = False
+                    
+                    # Computing players 3,...,numPlayers' BR
+                    for x in range(self.numPlayers):
+                        self.payoffMatrix[m][i][j].getListNode(x).bestResponse = True
+                        product = 1
+                        firstProfile = [0 for x in range(self.numPlayers)]
+                        firstProfile[x] = self.toProfile(m)[x]
+                        m2 = self.toIndex(firstProfile)
+                        
+                        # Getting the number of matrices to be compared
+                        numToCompare = 1
+                        for x in range(2, self.numPlayers):
+                            if x != player:
+                                numToCompare *= self.players[x].numStrats
+                        numToCompare -= 1
+                        
+                        numCompared = 0
+                        while numCompared < numToCompare:
+                            if m != m2:
+                                if self.payoffMatrix[m][i][j].getListNode(x).payoff < self.payoffMatrix[m2][i][j].getListNode(x).payoff:
+                                    self.payoffMatrix[m][i][j].getListNode(x).bestResponse = False    
+                                numCompared += 1
+                            
+                                # obtaining the next profile in the sequence
+                                if x == 2 and self.numPlayers > 3:
+                                    product = self.players[x].numStrats
+                                else:
+                                    allBelowPlayerAtMaxStrat = True
+                                    m2Profile = self.toProfile(m)
+                                    for x in range(2, player):
+                                        if m2Profile[x] != self.players[x].numStrats - 1:
+                                            allBelowPlayerAtMaxStrat = False
+                                    if m2Profile[player] == s and allBelowPlayerAtMaxStrat:
+                                        productBelowPlayer = 1
+                                        for x in range(2, x):
+                                            productBelowPlayer *= self.players[x].numStrats
+                                        product += productBelowPlayer * (self.players[x].numStrats - 1)
+                                    else:
+                                        product = 1
+                                m2 += product
         return
     
     def enterPayoffs(self, payoffs = [
@@ -793,11 +861,12 @@ arr_5players = [
     ]
 ]
 
-# G = SimGame(2)
-# G.enterPayoffs(arr_2players, 2, [2, 2])
+G = SimGame(2)
+G.enterPayoffs(arr_2players, 2, [2, 2])
+G.computeBestResponses()
 # G.print()
 # G.removeStrategy(0, 0)
-# G.print()
+G.print()
 
 # H = SimGame(3)
 # H.enterPayoffs(arr_3players, 3, [2, 2, 2])
