@@ -173,7 +173,7 @@ class Player:
         self.numStrats = numStrats
         self.rationality = rationality
 
-class simGame:    
+class SimGame:    
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
@@ -793,23 +793,23 @@ arr_5players = [
     ]
 ]
 
-# G = simGame(2)
+# G = SimGame(2)
 # G.enterPayoffs(arr_2players, 2, [2, 2])
 # G.print()
 # G.removeStrategy(0, 0)
 # G.print()
 
-# H = simGame(3)
+# H = SimGame(3)
 # H.enterPayoffs(arr_3players, 3, [2, 2, 2])
 # H.removeStrategy(0, 1)
 # H.print()
 
-# I = simGame(4)
+# I = SimGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
 # I.removeStrategy(0, 1)
 # I.print()
 
-# J = simGame(5)
+# J = SimGame(5)
 # J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
 # J.removeStrategy(0, 1)
 # print("J:")
