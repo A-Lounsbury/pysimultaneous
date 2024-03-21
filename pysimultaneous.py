@@ -2,6 +2,7 @@
 # Author: Andrew Lounsbury
 # Date: 3/21/24
 # Description: a class for handling simultaneous games with n players, n >= 2
+from itertools import chain
 
 class ListNode:
     head = None
@@ -314,9 +315,8 @@ class SimGame:
                         for j in range(self.players[1].numStrats):
                             maxValue = -1000000
                             
-                            """
-                            \"Comparing player x's strategies with each other, keeping player x's strategy the same, so we vary over player x's strategies\" (?)
-                            """
+                            # Comparing player x's strategies with each other, keeping player x's strategy the same, so we vary over player x's strategies (?)
+                            
                             # finding maxValue
                             profile[x] = 0
                             while (profile[x] < self.players[x].numStrats):
@@ -334,11 +334,29 @@ class SimGame:
                                 else:        
                                     curList.getListNode(x).bestResponse = False
                                 profile[x] += 1
+                    # move to the next m
                     if x > 2 and x < self.numPlayers - 1 and product == 1:
                         for y in range(2, x):
                             product *= self.players[y].numStrats
-                    m += product                
+                    m += product
                 return
+    
+    def computeBestResponses2(self):
+        if self.numPlayers < 3:
+            for i in range(self.players[0].numStrats):
+                for j in range(self.players[1].numStrats):
+                    br = self.isBestResponse([i, j])
+                    print("HERE br: ", br)
+                    for x in range(self.numPlayers):
+                        self.payoffMatrix[0][i][j].getListNode(x).bestResponse = br[x]
+        else: 
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        br = self.isBestResponse([i, j] + self.toProfile(m)[2:])
+                        print("THERE br: ", br)
+                        for x in range(self.numPlayers):
+                            self.payoffMatrix[m][i][j].getListNode(x).bestResponse = br[x]
     
     def computePureEquilibria(self):
         self.computeBestResponses()
@@ -391,34 +409,60 @@ class SimGame:
                     matrix.append(row)
                 self.payoffMatrix.append(matrix)
         
-    def isBestResponse(self, p1Strat, p2Strat):
+    def isBestResponse(self, profile):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
 
         Args:
             p1Strat (int): p1's strategy
             p2Strat (int): p2's strategy
         """
-        p1BR = True
-        p2BR = True
-        
+        br = [True for x in range(self.numPlayers)]
         if self.numPlayers < 3:
-            for i in range(self.players[0].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
-                    p1BR = False
+            for i in chain(range(profile[0]), range(profile[0] + 1, self.players[0].numStrats)):
+                if self.payoffMatrix[0][profile[0]][profile[1]].getListNode(0).payoff < self.payoffMatrix[0][i][profile[1]].getListNode(0).payoff:
+                    br[0] = False
             
-            for j in range(self.players[1].numStrats):
-                if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getListNode(1).payoff:
-                    p2BR = False
-            return (p1BR, p2BR)
+            for j in chain(range(profile[1]), range(profile[1] + 1, self.players[1].numStrats)):
+                print("Comparing: " + str(self.payoffMatrix[0][profile[0]][profile[1]].getListNode(1).payoff) + " < " + str(self.payoffMatrix[0][profile[1]][j].getListNode(1).payoff))
+                if self.payoffMatrix[0][profile[0]][profile[1]].getListNode(1).payoff < self.payoffMatrix[0][profile[1]][j].getListNode(1).payoff:
+                    br[1] = False
         else:
-            for m in range(len(self.payoffMatrix)):
-                for i in range(self.players[0].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(0).payoff < self.payoffMatrix[i][p2Strat].getListNode(0).payoff:
-                        p1BR = False
-                
-                for j in range(self.players[1].numStrats):
-                    if self.payoffMatrix[p1Strat][p2Strat].getListNode(1).payoff < self.payoffMatrix[p1Strat][j].getListNode[1].payoff:
-                        p2BR = False
+            for player in range(self.numPlayers):
+                if player == 0:
+                    for i in range(self.players[0].numStrats):
+                        if self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]].getListNode(0).payoff < self.payoffMatrix[self.toIndex(profile)][i][profile[1]].getListNode(0).payoff:
+                            br[player] = False
+                elif player == 1:
+                    for j in range(self.players[1].numStrats):
+                        if self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]].getListNode(1).payoff < self.payoffMatrix[self.toIndex(profile)][profile[0]][j].getListNode(1).payoff:
+                            br[player] = False
+                # FIXME: finish computing BRs for players 2,...,numPlayers - 1
+                else: # player > 1
+                    m = 0
+                    product = 1
+                    numCompared = 0
+                    curProfile = [0 for x in range(self.numPlayers)]
+                    
+                    # Getting the number of matrices to be compared
+                    numToCompare = self.players[2].numStrats
+                    for x in range(3, self.numPlayers):
+                        if x != player:
+                            numToCompare *= self.players[x].numStrats
+                    numToCompare -= 1
+                    
+                    numCompared = 0
+                    while numCompared < numToCompare:
+                        if m != self.toIndex(profile):
+                            if self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]].getListNode(player).payoff < self.payoffMatrix[m][profile[0]][profile[1]].getListNode(player).payoff:
+                                br[player] = False
+                            numCompared += 1
+
+                        # obtaining the next profile in the sequence
+                        if player > 2 and player < self.numPlayers - 1 and product == 1:
+                            for x in range(2, player):
+                                product *= self.players[x].numStrats
+                        m += product
+        return br
     
     def print(self):
         """Prints the payoff matrix
@@ -612,7 +656,6 @@ class SimGame:
                     del self.payoffMatrix[m][i][s]
         else: # player > 1
             m = 0
-            numDeleted = 0
             product = 1
             """In this file there's no x to go through, so just cycle through the 
             matrices and delete the appropriate ones. 
@@ -942,17 +985,20 @@ arr_5players = [
     ]
 ]
 
-# G = SimGame(2)
-# G.enterPayoffs(arr_2players, 2, [2, 2])
-# G.print()
-# G.printBestResponses()
-# G.computeBestResponses()
-# G.computePureEquilibria()
-# G.printBestResponses()
+G = SimGame(2)
+G.enterPayoffs(arr_2players, 2, [2, 2])
+G.print()
+G.computeBestResponses()
+# eqs = G.computePureEquilibria()
+G.printBestResponses()
 
-# H = SimGame(3)
-# H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
-# H.print()
+# for eq in eqs:
+#     print(eq)
+
+H = SimGame(3)
+H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
+H.computeBestResponses()
+H.printBestResponses()
 
 # I = SimGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
