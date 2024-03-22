@@ -415,19 +415,34 @@ class SimGame:
             
             # Collecting the equations to be solved
             equations1 = []
-            for i in range(0, self.players[0].numStrats, 2):
-                equations1.append(sympy.Eq(polynomials1[i], polynomials1[i + 1]))
+            if self.players[0].numStrats % 2 == 0:
+                for i in range(0, self.players[0].numStrats, 2):
+                    equations1.append(sympy.Eq(polynomials1[i], polynomials1[i + 1]))
+            else:
+                for i in range(0, self.players[0].numStrats - 1, 2):
+                    equations1.append(sympy.Eq(polynomials1[i], polynomials1[i + 1]))
+                    # adding an equation that contains the last polynomial
+                    equations1.append(sympy.Eq(polynomials1[0], polynomials1[-1]))
+                    
             equations2 = []
-            for j in range(0, self.players[1].numStrats, 2):
-                equations2.append(sympy.Eq(polynomials2[j], polynomials2[j + 1]))
+            if self.players[1].numStrats % 2 == 0:
+                for j in range(0, self.players[1].numStrats, 2):
+                    equations2.append(sympy.Eq(polynomials2[j], polynomials2[j + 1]))
+            else:
+                for j in range(0, self.players[1].numStrats - 1, 2):
+                    equations2.append(sympy.Eq(polynomials2[j], polynomials2[j + 1]))
+                    # adding an equation that contains the last polynomial
+                    equations2.append(sympy.Eq(polynomials2[0], polynomials2[-1]))
                 
             # solving the equations
             L1 = [float(value) for key, value in sympy.solve(tuple(equations1), tuple(qVars)).items()]
             L2 = [float(value) for key, value in sympy.solve(tuple(equations2), tuple(pVars)).items()]
-            L1 = L1 + [1 - val for val in L1]
-            L2 = L2 + [1 - val for val in L2]
+            sum1 = sum(L1)
+            sum2 = sum(L2)
+            L1.append(1 - sum1)
+            L2.append(1 - sum2)
             
-            return [L1] + [L2]
+            return [[L1] + [L2]]
         else:
             return []
         return []
@@ -887,6 +902,12 @@ bos = [
     [[0, 0], [1, 2]]
 ]
 
+rps = [
+    [[0, 0], [-1, 1], [1, -1]],
+    [[1, -1], [0, 0], [-1, 1]],
+    [[-1, 1], [1, -1], [0, 0]]
+]
+
 arr_3players = [
     [
         [[1, 2, 3], [4, 5, 6]],
@@ -1059,20 +1080,22 @@ arr_5players = [
     ]
 ]
 
-# G = SimGame(2)
-# G.enterPayoffs(bos, 2, [2, 2])
+G = SimGame(2)
+G.enterPayoffs(bos, 2, [2, 2])
 # G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
+print("EQS:", G.computeEquilibria())
 
 # for eq in eqs:
 #     print(eq)
 
 # H = SimGame(3)
-# H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
+# H.enterPayoffs(rps, 3, [3, 3, 3])
 # H.computeBestResponses()
 # H.printBestResponses()
+# print(H.computEquilibria())
 
 # I = SimGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
