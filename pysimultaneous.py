@@ -366,7 +366,7 @@ class SimGame:
     def computeEquilibria(self):
         return self.computePureEquilibria() + self.computeMixedEquilibria()
 
-    def computeMixedEquilibria(self):        
+    def computeMixedEquilibria(self):
         pVars = []
         for n in range(self.players[0].numStrats - 1):
             pVars.append(sympy.symbols('p_' + str(n)))
@@ -802,6 +802,15 @@ class SimGame:
                 if x < self.numPlayers - 1:
                     file.write(" ")
             file.write("\n")
+            
+            # write strategyNames to file
+            for x in range(self.numPlayers):
+                for s in range(players[x].numStrats):
+                    file.write(str(self.strategyNames[s]))
+                    if s < self.players[x].numStrats - 1:
+                        file.write(" ")
+                if x < self.numPlayers - 1:
+                    file.write("\n")
             
             # write rationalities to the file
             for x in range(self.numPlayers):
