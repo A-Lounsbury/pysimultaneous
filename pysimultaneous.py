@@ -5,6 +5,9 @@
 from itertools import chain
 import numpy as np
 from numpy.polynomial import Polynomial
+import sympy
+from sympy import solve
+from sympy.solvers.solveset import linsolve
 
 class ListNode:
     head = None
@@ -363,36 +366,71 @@ class SimGame:
     def computeEquilibria(self):
         return self.computePureEquilibria() + self.computeMixedEquilibria()
 
-    def computeMixedEquilibria(self):
-        if self.numPlayers < 3 and [self.players[x].numStrats for x in range(self.numPlayers)] == [2, 2]:
-            # getting the coefficients for EU_U
-            EU_U_coef = [self.payoffMatrix[0][0][j].getListNode(0).payoff for j in range(self.players[1].numStrats)]
-            print(EU_U_coef)
-            # getting the coefficients for EU_D
-            EU_D_coef = [self.payoffMatrix[0][1][j].getListNode(0).payoff for j in range(self.players[1].numStrats)]
-            print(EU_D_coef)
-            # getting the coefficients for EU_L
-            EU_L_coef = [self.payoffMatrix[0][i][0].getListNode(1).payoff for i in range(self.players[0].numStrats)]
-            print(EU_L_coef)
-            # getting the coefficients for EU_R
-            EU_R_coef = [self.payoffMatrix[0][i][1].getListNode(1).payoff for i in range(self.players[0].numStrats)]
-            print(EU_R_coef)
+    def computeMixedEquilibria(self):        
+        pVars = []
+        for n in range(self.players[0].numStrats - 1):
+            pVars.append(sympy.symbols('p_' + str(n)))
+        qVars = []
+        for n in range(self.players[1].numStrats - 1):
+            qVars.append(sympy.symbols('q_' + str(n)))      
+        
+        if self.numPlayers < 3:
+            # getting the coefficients for the polynomials, EU_1_coefs[n] is the set of coefficients for the n-th polynomial
+            EU_1_coefs = []
+            EU_2_coefs = []
+            for i in range(self.players[0].numStrats):
+                EU_1_coefs.append([self.payoffMatrix[0][i][j].getListNode(0).payoff for j in range(self.players[1].numStrats)])
+            for j in range(self.players[0].numStrats):
+                EU_2_coefs.append([self.payoffMatrix[0][i][j].getListNode(1).payoff for i in range(self.players[0].numStrats)])
             
-            p = np.polynomial.Polynomial([0, 1], symbol='p')
-            q = np.polynomial.Polynomial([0, 1], symbol='q')
+            # building polynomials for player 1
+            polynomials1 = []
+            for i in range(self.players[0].numStrats):
+                poly = 0
+                # building all but the last terms in poly
+                # it's range(nS1 - 1) because there are that many variables for all but he last term
+                for j in range(self.players[1].numStrats - 1):
+                    poly += EU_1_coefs[i][j] * qVars[j]
+                # builidng the last 1 - q0 - q1 - ... - qnS1 term
+                lastTerm = 1
+                for j in range(self.players[1].numStrats - 1):
+                    lastTerm -= qVars[j]
+                poly += EU_1_coefs[i][self.players[1].numStrats - 1] * lastTerm
+                polynomials1.append(poly)
+                
+            # building polynomials for player 2
+            polynomials2 = []
+            for j in range(self.players[1].numStrats):
+                poly = 0
+                # building all but the last terms in poly
+                # it's range(nS0 - 1) because there are that many variables for all but he last term
+                for i in range(self.players[0].numStrats - 1):
+                    poly += EU_2_coefs[j][i] * pVars[i]
+                # building the last 1 - q0 - q1 - ... - qnS1 term
+                lastTerm = 1
+                for i in range(self.players[0].numStrats - 1):
+                    lastTerm -= pVars[i]
+                poly += EU_2_coefs[j][self.players[0].numStrats - 1] * lastTerm
+                polynomials2.append(poly)
             
-            EU_U = EU_U_coef[0] * q + EU_U_coef[1] * (1 - q)
-            EU_D = EU_D_coef[0] * q + EU_D_coef[1] * (1 - q)
-            EU_L = EU_L_coef[0] * p + EU_L_coef[1] * (1 - p)
-            EU_R = EU_R_coef[0] * p + EU_R_coef[1] * (1 - p)
+            # Collecting the equations to be solved
+            equations1 = []
+            for i in range(0, self.players[0].numStrats, 2):
+                equations1.append(sympy.Eq(polynomials1[i], polynomials1[i + 1]))
+            equations2 = []
+            for j in range(0, self.players[1].numStrats, 2):
+                equations2.append(sympy.Eq(polynomials2[j], polynomials2[j + 1]))
+                
+            # solving the equations
+            L1 = [float(value) for key, value in sympy.solve(tuple(equations1), tuple(qVars)).items()]
+            L2 = [float(value) for key, value in sympy.solve(tuple(equations2), tuple(pVars)).items()]
+            L1 = L1 + [1 - val for val in L1]
+            L2 = L2 + [1 - val for val in L2]
             
-            diff1 = EU_U - EU_D
-            diff2 = EU_L - EU_R
-            return [[float(np.roots(np.flip(diff1.coef))), float(np.roots(np.flip(diff2.coef)))]]
-            
+            return [L1] + [L2]
         else:
             return []
-        return
+        return []
  
     def computePureEquilibria(self):
         self.computeBestResponses()
@@ -1021,22 +1059,15 @@ arr_5players = [
     ]
 ]
 
-
-
-G = SimGame(2)
-G.enterPayoffs(bos, 2, [2, 2])
-G.print()
+# G = SimGame(2)
+# G.enterPayoffs(bos, 2, [2, 2])
+# G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
 
 # for eq in eqs:
 #     print(eq)
-
-print(G.computeMixedEquilibria())
-eqs = G.computeEquilibria()
-for eq in eqs:
-    print(eq)
 
 # H = SimGame(3)
 # H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
