@@ -448,10 +448,12 @@ class SimGame:
             L2 = [float(value) for key, value in sympy.solve(tuple(equations2), tuple(pVars))]
             sum1 = sum(L1)
             sum2 = sum(L2)
-            L1.append(1 - sum1)
-            L2.append(1 - sum2)
-            
-            return [[L1] + [L2]]
+            if sum1 == 0 or sum2 == 0:
+                return []
+            else:
+                L1.append(1 - sum1)
+                L2.append(1 - sum2)
+                return [[L1] + [L2]]
         else:
             return []
         return []
@@ -1129,14 +1131,14 @@ arr_5players = [
     ]
 ]
 
-# G = SimGame(2)
+G = SimGame(2)
 # G.enterPayoffs(rps, 2, [3, 3, 3])
 # G.saveToFile("text files/rps.txt")
 # G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
-# print("EQS:", G.computeEquilibria())
+print("EQS:", G.computeEquilibria())
 
 # for eq in eqs:
 #     print(eq)
