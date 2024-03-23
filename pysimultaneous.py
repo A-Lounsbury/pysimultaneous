@@ -444,8 +444,10 @@ class SimGame:
                     equations2.append(sympy.Eq(polynomials2[0], polynomials2[-1]))
                 
             # solving the equations
-            L1 = [float(value) for key, value in sympy.solve(tuple(equations1), tuple(qVars))]
-            L2 = [float(value) for key, value in sympy.solve(tuple(equations2), tuple(pVars))]
+            dict1 = sympy.solve(tuple(equations1), tuple(qVars))
+            dict2 = sympy.solve(tuple(equations2), tuple(pVars))        
+            L1 = [float(dict1[qVars[j]]) for j in range(self.players[1].numStrats - 1)]
+            L2 = [float(dict2[pVars[i]]) for i in range(self.players[0].numStrats - 1)]
             sum1 = sum(L1)
             sum2 = sum(L2)
             if sum1 == 0 or sum2 == 0:
@@ -1131,14 +1133,14 @@ arr_5players = [
     ]
 ]
 
-G = SimGame(2)
-# G.enterPayoffs(rps, 2, [3, 3, 3])
+# G = SimGame(2)
+# G.enterPayoffs(bos, 2, [2, 2])
 # G.saveToFile("text files/rps.txt")
 # G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
-print("EQS:", G.computeEquilibria())
+# print("EQS:", G.computeEquilibria())
 
 # for eq in eqs:
 #     print(eq)
