@@ -271,8 +271,8 @@ class SimGame:
             self.payoffMatrix.append(matrix)
         else:
             numMatrices = 1
-            for i in range(3, self.numPlayers):
-                numMatrices *= self.players[i].numStrats
+            for x in range(2, self.numPlayers):
+                numMatrices *= self.players[x].numStrats
             for m in range(numMatrices):
                 matrix = []
                 for i in range(self.players[0].numStrats):
@@ -332,9 +332,10 @@ class SimGame:
                             
                             # Comparing player x's strategies with each other, keeping player x's strategy the same, so we vary over player x's strategies (?)
                             
+                            # FIXME: while profile[x] < self.players[x].numStrats - 1 breaks computeBestResponses, but while profile[x] < self.players[x].numStrats breaks something else
                             # finding maxValue
                             profile[x] = 0
-                            while (profile[x] < self.players[x].numStrats):
+                            while profile[x] < self.players[x].numStrats:
                                 curList = self.payoffMatrix[self.toIndex(profile)][i][j]
                                 if curList.getListNode(x).payoff > maxValue:
                                     maxValue = curList.getListNode(x).payoff
@@ -376,15 +377,14 @@ class SimGame:
     def computeEquilibria(self):
         return self.computePureEquilibria() + self.computeMixedEquilibria()
 
-    def computeMixedEquilibria(self):
-        pVars = []
-        for n in range(self.players[0].numStrats - 1):
-            pVars.append(sympy.symbols('p_' + str(n)))
-        qVars = []
-        for n in range(self.players[1].numStrats - 1):
-            qVars.append(sympy.symbols('q_' + str(n)))      
-        
+    def computeMixedEquilibria(self):       
         if self.numPlayers < 3:
+            pVars = []
+            for i in range(self.players[0].numStrats - 1):
+                pVars.append(sympy.symbols('p_' + str(i)))
+            qVars = []
+            for j in range(self.players[1].numStrats - 1):
+                qVars.append(sympy.symbols('q_' + str(j)))
             # getting the coefficients for the polynomials, EU_1_coefs[n] is the set of coefficients for the n-th polynomial
             EU_1_coefs = []
             EU_2_coefs = []
@@ -401,7 +401,7 @@ class SimGame:
                 # it's range(nS1 - 1) because there are that many variables for all but he last term
                 for j in range(self.players[1].numStrats - 1):
                     poly += EU_1_coefs[i][j] * qVars[j]
-                # builidng the last 1 - q0 - q1 - ... - qnS1 term
+                # building the last 1 - q0 - q1 - ... - qnS1 term
                 lastTerm = 1
                 for j in range(self.players[1].numStrats - 1):
                     lastTerm -= qVars[j]
@@ -464,7 +464,17 @@ class SimGame:
                 L1.append(1 - sum1)
                 L2.append(1 - sum2)
                 return [[L1] + [L2]]
-        else:
+        else: # numPLayers >= 3
+            # FIXME: finish for n >= 3 players
+            alphabet = "abcdefghijklmnopqrstuvwxyz"
+            alphabetVars = [[] for x in range(self.numPlayers)]
+            if self.numPlayers < 26: # assuming numPlayers <= 26.
+                for x in range(self.numPlayers):
+                    for n in range(self.players[x].numStrats - 1):
+                        alphabetVars[x].append(sympy.symbols(alphabet[x] + "_" + str(n)))
+                print("alphabetVars:", alphabetVars)
+            else: # numPlayers >= 26
+                print("Error: not enough letters to have variables for all players")
             return []
         return []
  
@@ -478,6 +488,7 @@ class SimGame:
                     allBR = True
                     for x in range(self.numPlayers):
                         if self.payoffMatrix[m][i][j].getListNode(x).bestResponse == False:
+                            print("\tFalse")
                             allBR = False
                             break
                     if allBR:
@@ -1153,11 +1164,15 @@ arr_5players = [
 # for eq in eqs:
 #     print(eq)
 
-# H = SimGame(3)
-# H.enterPayoffs(rps, 3, [3, 3, 3])
+H = SimGame(3)
+# H.print()
+# H.enterPayoffs(brTest_3players, 3, [2, 2, 2])
+# print("br test:")
+# H.print()
 # H.computeBestResponses()
 # H.printBestResponses()
-# print(H.computEquilibria())
+# print(H.computePureEquilibria())
+print(H.computeEquilibria())
 
 # I = SimGame(4)
 # I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
