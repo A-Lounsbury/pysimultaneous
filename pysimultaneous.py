@@ -8,6 +8,7 @@ from numpy.polynomial import Polynomial
 import sympy
 from sympy import solve
 from sympy.solvers.solveset import linsolve
+from sympy import srepr
 
 class ListNode:
     head = None
@@ -442,12 +443,19 @@ class SimGame:
                     equations2.append(sympy.Eq(polynomials2[j], polynomials2[j + 1]))
                     # adding an equation that contains the last polynomial
                     equations2.append(sympy.Eq(polynomials2[0], polynomials2[-1]))
-                
+            
             # solving the equations
-            dict1 = sympy.solve(tuple(equations1), tuple(qVars))
-            dict2 = sympy.solve(tuple(equations2), tuple(pVars))        
-            L1 = [float(dict1[qVars[j]]) for j in range(self.players[1].numStrats - 1)]
-            L2 = [float(dict2[pVars[i]]) for i in range(self.players[0].numStrats - 1)]
+            dict1 = sympy.solve(tuple(equations1), tuple(qVars), set=True)
+            dict2 = sympy.solve(tuple(equations2), tuple(pVars), set=True)
+            if dict1[1] == set() or dict2 == set():
+                return []
+            L1 = []
+            L2 = []
+            for j in range(1, len(dict1), 2):
+                L1.append(float(list(list(dict1[j])[0])[0]))
+            for i in range(1, len(dict2), 2):
+                L2.append(float(list(list(dict2[i])[0])[0]))
+            
             sum1 = sum(L1)
             sum2 = sum(L2)
             if sum1 == 0 or sum2 == 0:
@@ -1133,14 +1141,14 @@ arr_5players = [
     ]
 ]
 
-# G = SimGame(2)
+G = SimGame(2)
 # G.enterPayoffs(bos, 2, [2, 2])
 # G.saveToFile("text files/rps.txt")
 # G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
-# print("EQS:", G.computeEquilibria())
+print("EQS:", G.computeEquilibria())
 
 # for eq in eqs:
 #     print(eq)
