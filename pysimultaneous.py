@@ -1141,14 +1141,14 @@ arr_5players = [
     ]
 ]
 
-G = SimGame(2)
+# G = SimGame(2)
 # G.enterPayoffs(bos, 2, [2, 2])
 # G.saveToFile("text files/rps.txt")
 # G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
-print("EQS:", G.computeEquilibria())
+# print("EQS:", G.computeEquilibria())
 
 # for eq in eqs:
 #     print(eq)
