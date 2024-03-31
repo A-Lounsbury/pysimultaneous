@@ -254,9 +254,9 @@ class SimGame:
         if self.numPlayers > 2:
             for x in range(2, self.numPlayers):
                 if self.players[x].numStrats < 3:
-                    self.strategyNames.append(["L(" + str(x) + ")", "R(" + str(x) + ")"])
+                    self.strategyNames.append(["L(" + str(x + 1) + ")", "R(" + str(x + 1) + ")"])
                 else: 
-                    self.strategyNames.append(["L(" + str(x) + ")"] + ["C(" + str(x) + ", " + str(s) + ")" for s in range(self.players[x].numStrats)] + ["R(" + str(x) + ")"])
+                    self.strategyNames.append(["L(" + str(x + 1) + ")"] + ["C(" + str(x + 1) + ", " + str(s + 1) + ")" for s in range(self.players[x].numStrats)] + ["R(" + str(x + 1) + ")"])
         
         self.numPlayers = numPlayers
         
@@ -649,7 +649,7 @@ class SimGame:
         self.payoffMatrix = []
         numMatrices = 1
         for x in range(2, self.numPlayers):
-            numMatrices *= oldNumStrats[x]
+            numMatrices *= numStrats[x]
         for m in range(numMatrices):
             matrix = []
             for i in range(self.players[0].numStrats):
@@ -683,9 +683,9 @@ class SimGame:
         if self.numPlayers > 2:
             for x in range(2, self.numPlayers):
                 if self.players[x].numStrats < 3:
-                    self.strategyNames.append(["L(" + str(x) + ")", "R(" + str(x) + ")"])
+                    self.strategyNames.append(["L(" + str(x + 1) + ")", "R(" + str(x + 1) + ")"])
                 else: 
-                    self.strategyNames.append(["L(" + str(x) + ")"] + ["C(" + str(x) + ", " + str(s) + ")" for s in range(self.players[x].numStrats)] + ["R(" + str(x) + ")"])
+                    self.strategyNames.append(["L(" + str(x + 1) + ")"] + ["C(" + str(x + 1) + ", " + str(s + 1) + ")" for s in range(self.players[x].numStrats)] + ["R(" + str(x + 1) + ")"])
         
     def isBestResponse(self, profile):
         """Checks whether p1Strat and p2Strat are best responses relative to each other
