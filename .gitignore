@@ -1,5 +1,7 @@
 text files/
 pysimultaneous_numpy.py
+scipy_test.py
+sympy_test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

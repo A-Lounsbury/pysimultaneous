@@ -7,8 +7,6 @@ import numpy as np
 from numpy.polynomial import Polynomial
 import sympy
 from sympy import solve
-from sympy.solvers.solveset import linsolve
-from sympy import srepr
 from sympy import simplify
 import warnings
 from pprint import pprint
@@ -625,12 +623,12 @@ class SimGame:
                         br.append([i, j] + self.toProfile(m)[2:])
         return br
     
-    def enterPayoffs(self, payoffs = [
+    def enterData(self, numPlayers = 2, numStrats = [2, 2], payoffs = [
         [[1, 5], [2, 6]],
         [[3, 7], [4, 8]]
-    ], numPlayers = 2, numStrats = [2, 2]):        
+    ]):        
         oldNumPlayers = self.numPlayers
-        oldNumStrats = [self.players[x].numStrats for x in range(self.numPlayers)]
+        oldNumStrats = [self.players[x].numStrats for x in range(oldNumPlayers)]
         self.numPlayers = numPlayers
         
         if self.numPlayers <= oldNumPlayers:
@@ -648,8 +646,8 @@ class SimGame:
         
         self.payoffMatrix = []
         numMatrices = 1
-        for x in range(2, self.numPlayers):
-            numMatrices *= numStrats[x]
+        for x in range(2, oldNumPlayers):
+            numMatrices *= oldNumStrats[x]
         for m in range(numMatrices):
             matrix = []
             for i in range(self.players[0].numStrats):
@@ -658,7 +656,7 @@ class SimGame:
                     outcome = ListNode(payoffs[m][i][j][0], False)
                     for x in range(1, self.numPlayers):
                         outcome.append(payoffs[m][i][j][x], False)
-                    row.append(outcome)                 
+                    row.append(outcome)
                 matrix.append(row)
             self.payoffMatrix.append(matrix)
         
@@ -1086,19 +1084,25 @@ class SimGame:
         return profile
 
 arr_2players = [
-    [[1, 5], [2, 6]],
-    [[3, 7], [4, 8]]
+    [
+        [[1, 5], [2, 6]],
+        [[3, 7], [4, 8]]
+    ]
 ]
 
 bos = [
-    [[2, 1], [0, 0]],
-    [[0, 0], [1, 2]]
+    [
+        [[2, 1], [0, 0]],
+        [[0, 0], [1, 2]]
+    ]
 ]
 
 rps = [
-    [[0, 0], [-1, 1], [1, -1]],
-    [[1, -1], [0, 0], [-1, 1]],
-    [[-1, 1], [1, -1], [0, 0]]
+    [
+        [[0, 0], [-1, 1], [1, -1]],
+        [[1, -1], [0, 0], [-1, 1]],
+        [[-1, 1], [1, -1], [0, 0]]
+    ]
 ]
 
 arr_3players = [
@@ -1296,7 +1300,7 @@ arr_5players = [
 ]
 
 # G = SimGame(2)
-# G.enterPayoffs(bos, 2, [2, 2])
+# G.enterData(bos, 2, [2, 2])
 # G.saveToFile("text files/rps.txt")
 # G.print()
 # G.computeBestResponses()
@@ -1309,7 +1313,7 @@ arr_5players = [
 
 # H = SimGame(3)
 # H.print()
-# H.enterPayoffs(twoEq_3players, 3, [2, 2, 2])
+# H.enterData(twoEq_3players, 3, [2, 2, 2])
 # print("br test:")
 # H.print()
 # H.computeBestResponses()
@@ -1318,12 +1322,12 @@ arr_5players = [
 # print(H.computeEquilibria())
 
 # I = SimGame(4)
-# I.enterPayoffs(arr_4players, 4, [2, 2, 3, 3])
+# I.enterData(arr_4players, 4, [2, 2, 3, 3])
 # I.removeStrategy(0, 1)
 # I.print()
 
 # J = SimGame(5)
-# J.enterPayoffs(arr_5players, 5, [2, 2, 3, 3, 3])
+# J.enterData(arr_5players, 5, [2, 2, 3, 3, 3])
 # J.removeStrategy(2, 0)
 # print("J:")
 # J.print()
