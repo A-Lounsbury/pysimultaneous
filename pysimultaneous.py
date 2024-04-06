@@ -4,7 +4,6 @@
 # Description: a class for handling simultaneous games with n players, n >= 2
 from itertools import chain
 import numpy as np
-from numpy.polynomial import Polynomial
 import sympy
 from sympy import solve
 from sympy import simplify
