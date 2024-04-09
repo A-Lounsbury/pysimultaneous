@@ -656,8 +656,7 @@ class SimGame:
         x = -1
         k = 0
         # stop when you can't eliminate a strategy for either player or when only one strategy is left for each players
-        while oneWithMultipleStrats and oneStratRemoved and oneNotChecked:
-            print("while")
+        while oneWithMultipleStrats and oneNotChecked:
             k += 1
             x += 1
             for y in range(self.numPlayers):
@@ -672,7 +671,12 @@ class SimGame:
             for y in range(2, self.numPlayers):
                 numMatrices *= self.players[y].numStrats
             
+            multipleStrats = [True for y in range(self.numPlayers)]
+            for y in range(self.numPlayers):
+                if self.players[y].numStrats == 1:
+                    multipleStrats[y] = False
             stratRemoved = [False for x in range(self.numPlayers)]
+            oneNotChecked = True
             checked = [False for x in range(self.numPlayers)]
             
             if multipleStrats[x % self.numPlayers]:
@@ -740,7 +744,7 @@ class SimGame:
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
-                            self.removeStrategy(x % self.numPlayers, pair[0])
+                            self.removeStrategy(x % self.numPlayers, pair[1])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
@@ -813,7 +817,7 @@ class SimGame:
                                         allBelowPlayerAtMaxStrat = False
                                 if m2Profile[x % self.numPlayers] == pair[1] and allBelowPlayerAtMaxStrat:
                                     productBelowPlayer = 1
-                                    for y in range(2, x):
+                                    for y in range(2, x % self.numPlayers):
                                         productBelowPlayer *= self.players[y].numStrats
                                     product += productBelowPlayer * (self.players[x % self.numPlayers].numStrats - 1)
                                 else:
@@ -853,7 +857,7 @@ class SimGame:
                         break
                 if not oneWithMultipleStrats:
                     oneStratRemoved = False
-                    oneNotChecked = False
+                    oneNotChecked = False            
         return
     
     def eliminateStrictlyDominatedStrategies_step(self):
@@ -1555,13 +1559,13 @@ iesds_3 = [
     ]
 ]
 
-G = SimGame(2)
-G.enterData(2, [3, 3], iesds)
+# G = SimGame(2)
+# G.enterData(2, [3, 3], iesds)
 # G.saveToFile("text files/rps.txt")
-G.print()
-G.eliminateStrictlyDominatedStrategies_full()
-print("AFTER:")
-G.print()
+# G.print()
+# G.eliminateStrictlyDominatedStrategies_full()
+# print("AFTER:")
+# G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
@@ -1570,13 +1574,13 @@ G.print()
 # for eq in eqs:
 #     print(eq)
 
-# H = SimGame(3)
+H = SimGame(3)
 # H.print()
-# H.enterData(3, [2, 2, 2], iesds_3)
+H.enterData(3, [2, 2, 2], iesds_3)
 # print("br test:")
-# H.print()
-# H.eliminateStrictlyDominatedStrategies_full()
-# H.print()
+H.print()
+H.eliminateStrictlyDominatedStrategies_full()
+H.print()
 # H.computeBestResponses()
 # H.printBestResponses()
 # print(H.computePureEquilibria())
