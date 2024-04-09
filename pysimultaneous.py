@@ -636,38 +636,54 @@ class SimGame:
         lessThanFound = [False for x in range(self.numPlayers)]
         equalFound = [False for x in range(self.numPlayers)]
         multipleStrats = [True for x in range(self.numPlayers)]
-        multipleStratsConjunction = True
+        oneWithMultipleStrats = False
         for ms in multipleStrats:
-            if not ms:
-                multipleStratsConjunction = False
+            if ms:
+                oneWithMultipleStrats = True
                 break
         stratRemoved = [True for x in range(self.numPlayers)]
-        stratRemovedDisjunction = False
+        oneStratRemoved = False
         for sr in stratRemoved:
             if sr:
-                stratRemovedDisjunction = True
+                oneStratRemoved = True
                 break
+        checked = [False for x in range(self.numPlayers)]
+        oneNotChecked = False
+        for p in checked:
+            if not p:
+                oneNotChecked = True
+                break
+        x = -1
+        k = 0
         # stop when you can't eliminate a strategy for either player or when only one strategy is left for each players
-        while multipleStratsConjunction and stratRemovedDisjunction:
-            stratRemoved[0] = False
-            stratRemoved[1] = False
-            for x in range(self.numPlayers):
-                # recomputing the pairs that need to be checked because the number of strategies may have changed
-                strategyIndices = [[k for k in range(self.players[x].numStrats)] for x in range(self.numPlayers)]
-                pairs = [combinations(strategyIndices[x], r=2) for x in range(self.numPlayers)]
-                numCombos = [sum(1 for pair in pairs[x]) for x in range(self.numPlayers)]
-                pairs = [combinations(strategyIndices[x], r=2) for x in range(self.numPlayers)]
-                
-                numMatrices = 1
-                for x in range(2, self.numPlayers):
-                    numMatrices *= players[x].numStrats
-                
-                if x == 0:
-                    for pair in pairs[x]:
+        while oneWithMultipleStrats and oneStratRemoved and oneNotChecked:
+            print("while")
+            k += 1
+            x += 1
+            for y in range(self.numPlayers):
+                stratRemoved[y] = False
+            # recomputing the pairs that need to be checked because the number of strategies may have changed
+            strategyIndices = [[k for k in range(self.players[y].numStrats)] for y in range(self.numPlayers)]
+            pairs = [combinations(strategyIndices[y], r=2) for y in range(self.numPlayers)]
+            numCombos = [sum(1 for pair in pairs[y]) for y in range(self.numPlayers)]
+            pairs = [combinations(strategyIndices[y], r=2) for y in range(self.numPlayers)]
+            
+            numMatrices = 1
+            for y in range(2, self.numPlayers):
+                numMatrices *= self.players[y].numStrats
+            
+            stratRemoved = [False for x in range(self.numPlayers)]
+            checked = [False for x in range(self.numPlayers)]
+            
+            if multipleStrats[x % self.numPlayers]:
+                checked[x % self.numPlayers] = True
+                if x % self.numPlayers == 0:
+                    for pair in pairs[x % self.numPlayers]:
                         greaterThanFound[0] = False
                         lessThanFound[0] = False
                         equalFound[0] = False
-                        # searching for < or > among the payoffs
+                        # Searching for < or > among the payoffs
+                        # Fixing all other player's strategies
                         for m in range(numMatrices):  
                             for j in range(self.players[1].numStrats):
                                 # if p1 has only one strategy lef
@@ -675,130 +691,170 @@ class SimGame:
                                     multipleStrats1 = False
                                     break
                                 # Comparing two payoffs
-                                if self.payoffMatrix[m][pair[0]][j].getListNode(0).payoff < self.payoffMatrix[m][pair[1]][j].getListNode(0).payoff:
-                                    lessThanFound[0] = True
-                                elif self.payoffMatrix[m][pair[0]][j].getListNode(0).payoff > self.payoffMatrix[m][pair[1]][j].getListNode(0).payoff:
-                                    greaterThanFound[0] = True
+                                if self.payoffMatrix[m][pair[0]][j].getListNode(x % self.numPlayers).payoff < self.payoffMatrix[m][pair[1]][j].getListNode(x % self.numPlayers).payoff:
+                                    lessThanFound[x % self.numPlayers] = True
+                                elif self.payoffMatrix[m][pair[0]][j].getListNode(x % self.numPlayers).payoff > self.payoffMatrix[m][pair[1]][j].getListNode(x % self.numPlayers).payoff:
+                                    greaterThanFound[x % self.numPlayers] = True
                                 else: # equal payoffs found
-                                    equalFound[0] = True
+                                    equalFound[x % self.numPlayers] = True
                                     break
                         
                         # Removing strategies based on the results
-                        if lessThanFound[0] and not greaterThanFound[0] and not equalFound[0]: # remove strategy pair[0]
-                            self.players[0].numStrats -= 1
-                            self.strategyNames[1].pop(pair[0])
-                            for m in range(numMatrices):
-                                for j in range(self.players[1].numStrats):
-                                    self.payoffMatrix[m][pair[0]].pop(j)
-                                    if len(self.payoffMatrix[m][pair[0]]) == 0:
-                                        del self.payoffMatrix[m][pair[0]]
-                            strategyIndices[0].pop()
-                            stratRemoved[0] = True
-                        elif greaterThanFound[0] and not lessThanFound[0] and not equalFound[0]: # remove strategy pair[1]
-                            self.players[0].numStrats -= 1
-                            self.strategyNames[0].pop(pair[1])
-                            numDeleted = 0
-                            for m in range(numMatrices):
-                                for j in range(self.players[1].numStrats):
-                                    j -= numDeleted
-                                    self.payoffMatrix[m][pair[1]].pop(j)
-                                    if len(self.payoffMatrix[m][pair[1]]) == 0:
-                                        del self.payoffMatrix[m][pair[1]]
-                                    numDeleted += 1
-                            strategyIndices[0].pop()
-                            stratRemoved[0] = True
-                        else: # (not lessThanFound[0] and not greaterThanFound[0])(all equal) or (lessThanFound[0] and greaterThanFound[0])(no dominance)
-                            stratRemoved[0] = False
+                        if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
+                            self.removeStrategy(x % self.numPlayers, pair[0])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
+                        elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
+                            self.removeStrategy(x % self.numPlayers, pair[1])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
+                        else: # (not lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers])(all equal) or (lessThanFound[x % self.numPlayers] and greaterThanFound[x % self.numPlayers])(no dominance)
+                            stratRemoved[x % self.numPlayers] = False
                         
-                        if stratRemoved[0]:
+                        if stratRemoved[x % self.numPlayers]:
                             break
-                elif x == 1:
-                    for pair in pairs[x]:
+                elif x % self.numPlayers == 1:
+                    for pair in pairs[x % self.numPlayers]:
                         greaterThanFound[1] = False
                         lessThanFound[1] = False
                         equalFound[1] = False
-                        # searching for < or > among the payoffs
+                        # Searching for < or > among the payoffs
+                        # Fixing all other player's strategies
                         for m in range(numMatrices):
                             for i in range(self.players[0].numStrats):
                                 if len(self.payoffMatrix[m][pair[0]]) == 1: # if p2 only has one strategy left
                                     multipleStrats2 = False
                                     break
                                 # Comparing two payoffs
-                                if self.payoffMatrix[m][i][pair[0]].getListNode(1).payoff < self.payoffMatrix[m][i][pair[1]].getListNode(1).payoff:
-                                    lessThanFound[1] = True
-                                elif self.payoffMatrix[m][i][pair[0]].getListNode(1).payoff > self.payoffMatrix[m][i][pair[1]].getListNode(1).payoff:
-                                    greaterThanFound[1] = True
+                                if self.payoffMatrix[m][i][pair[0]].getListNode(x % self.numPlayers).payoff < self.payoffMatrix[m][i][pair[1]].getListNode(x % self.numPlayers).payoff:
+                                    lessThanFound[x % self.numPlayers] = True
+                                elif self.payoffMatrix[m][i][pair[0]].getListNode(x % self.numPlayers).payoff > self.payoffMatrix[m][i][pair[1]].getListNode(x % self.numPlayers).payoff:
+                                    greaterThanFound[x % self.numPlayers] = True
                                 else: # equal payoffs were found
-                                    equalFound[1] = True
+                                    equalFound[x % self.numPlayers] = True
                                     break
                         
                         # Removing strategies based on the results
-                        if lessThanFound[1] and not greaterThanFound[1] and not equalFound[1]: # remove strategy pair[0]
-                            self.players[1].numStrats -= 1
-                            self.strategyNames[1].pop(pair[0])
-                            for m in range(numMatrices):
-                                for i in range(self.players[0].numStrats):
-                                    self.payoffMatrix[m][i].pop(pair[0])
-                            strategyIndices[1].pop()
-                            stratRemoved[1] = True
-                        elif greaterThanFound[1] and not lessThanFound[1] and not equalFound[1]: # remove strategy pair[1]
-                            self.players[1].numStrats -= 1
-                            self.strategyNames[1].pop(pair[0])
-                            for m in range(numMatrices):
-                                for i in range(self.players[0].numStrats):
-                                    self.payoffMatrix[m][i].pop(pair[1])
-                            strategyIndices[1].pop()
-                            stratRemoved[1] = True
+                        if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
+                            self.removeStrategy(x % self.numPlayers, pair[0])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
+                        elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
+                            self.removeStrategy(x % self.numPlayers, pair[0])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
-                            stratRemoved[1] = False
+                            stratRemoved[x % self.numPlayers] = False
                         
-                        if stratRemoved[1]:
+                        if stratRemoved[x % self.numPlayers]:
                             break
-                    for ms in multipleStrats:
-                        if not ms:
-                            multipleStratsConjunction = False
-                            break
-                    for sr in stratRemoved:
-                        if sr:
-                            stratRemovedDisjunction = True
-                            break
-                    if not stratRemovedDisjunction:
-                        break
                 else: # x > 1
-                    greaterThanFound[x] = False
-                    lessThanFound[x] = False
-                    equalFound[x] = False
-                    # FIXME
-                    for pair in pairs[x]:
-                        greaterThanFound[1] = False
-                        lessThanFound[1] = False
-                        equalFound[1] = False
-                        # searching for < or > among the payoffs
-                        profile = [0 for x in range(self.numPlayers)]
-                        runProfile = [0 for x in range(self.numPlayers)]
-                        profile[x] = pair[0] # start at the first array
-                        runProfile[x] = pair[1] # runs through the other profiles in the section
+                    greaterThanFound[x % self.numPlayers] = False
+                    lessThanFound[x % self.numPlayers] = False
+                    equalFound[x % self.numPlayers] = False
+                    for pair in pairs[x % self.numPlayers]:
+                        greaterThanFound[x % self.numPlayers] = False
+                        lessThanFound[x % self.numPlayers] = False
+                        equalFound[x % self.numPlayers] = False
+                        # Searching for < or > among the payoffs
+                        # Fixing all other player's strategies
+                        firstProfile1 = [0 for y in range(self.numPlayers)]
+                        firstProfile2 = [0 for y  in range(self.numPlayers)]
+                        firstProfile1[x % self.numPlayers] = pair[0] # start at the first array for the first strategy
+                        firstProfile2[x % self.numPlayers] = pair[1] # start at the first array for the second strategy
+                        m1 = self.toIndex(firstProfile1)
+                        m2 = self.toIndex(firstProfile2)
+                        product = 1
                         
-                        for i in range(self.players[0].numStrats):
-                            for j in range(self.players[1].numStrats):
-                                if self.payoffMatrix[self.toIndex(profile)][i][j].getListNode(x).payoff < self.payoffMatrix[self.toIndex(runProfile)][i][j].getListNode(x).payoff:
-                                    lessThanFound[x] = True
-                                elif self.payoffMatrix[self.toIndex(profile)][i][j].getListNode(x).payoff > self.payoffMatrix[self.toIndex(runProfile)][i][j].getListNode(x).payoff:
-                                    greaterThanFound[x] = True
-                                else: # equal payoffs found
-                                    equalFound[x] = True
-                                                          
+                        # Getting the number of matrices to compare
+                        numToCompare = 1
+                        for y in range(2, self.numPlayers):
+                            if y != x % self.numPlayers:
+                                numToCompare *= self.players[y].numStrats
+                                
+                        numCompared = 0
+                        while numCompared < numToCompare:
+                            # Comparing
+                            for i in range(self.players[0].numStrats):
+                                for j in range(self.players[1].numStrats):
+                                    if self.payoffMatrix[m1][i][j].getListNode(x % self.numPlayers).payoff < self.payoffMatrix[m2][i][j].getListNode(x % self.numPlayers).payoff:
+                                        lessThanFound[x % self.numPlayers] = True
+                                    elif self.payoffMatrix[m1][i][j].getListNode(x % self.numPlayers).payoff > self.payoffMatrix[m2][i][j].getListNode(x % self.numPlayers).payoff:
+                                        greaterThanFound[x % self.numPlayers] = True
+                                    else: # equal payoffs found
+                                        equalFound[x % self.numPlayers] = True
+                            numCompared += 1
+                                    
+                            # Move both profiles to the next matrix in the section
+                            # obtaining the next profile in the sequence
+                            if x % self.numPlayers == 2 and self.numPlayers > 3:
+                                product = self.players[x % self.numPlayers].numStrats
+                            else:
+                                allBelowPlayerAtMaxStrat = True
+                                m1Profile = self.toProfile(m1)
+                                for y in range(2, x % self.numPlayers):
+                                    if m1Profile[y] != self.players[y].numStrats - 1:
+                                        allBelowPlayerAtMaxStrat = False
+                                if m1Profile[x % self.numPlayers] == pair[0] and allBelowPlayerAtMaxStrat:
+                                    productBelowPlayer = 1
+                                    for y in range(2, x):
+                                        productBelowPlayer *= self.players[y].numStrats
+                                    product += productBelowPlayer * (self.players[x % self.numPlayers].numStrats - 1)
+                                else:
+                                    product = 1
+                            m1 += product
+                            if x % self.numPlayers == 2 and self.numPlayers > 3:
+                                product = self.players[x % self.numPlayers].numStrats
+                            else:
+                                allBelowPlayerAtMaxStrat = True
+                                m2Profile = self.toProfile(m2)
+                                for y in range(2, x % self.numPlayers):
+                                    if m2Profile[y] != self.players[y].numStrats - 1:
+                                        allBelowPlayerAtMaxStrat = False
+                                if m2Profile[x % self.numPlayers] == pair[1] and allBelowPlayerAtMaxStrat:
+                                    productBelowPlayer = 1
+                                    for y in range(2, x):
+                                        productBelowPlayer *= self.players[y].numStrats
+                                    product += productBelowPlayer * (self.players[x % self.numPlayers].numStrats - 1)
+                                else:
+                                    product = 1
+                            m2 += product
+                                                        
                         # Removing strategies based on the results
+                        if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
+                            self.removeStrategy(x % self.numPlayers, pair[0])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
+                        elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
+                            self.removeStrategy(x % self.numPlayers, pair[1])
+                            strategyIndices[x % self.numPlayers].pop()
+                            stratRemoved[x % self.numPlayers] = True
+                        else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
+                            stratRemoved[x % self.numPlayers] = False
                         
+                        if stratRemoved[x % self.numPlayers]:
+                            break
+                if self.players[x % self.numPlayers].numStrats == 1:
+                    multipleStrats[x % self.numPlayers] = False
+                oneWithMultipleStrats = False
+                oneStratRemoved = False
+                oneNotChecked = False
                 for ms in multipleStrats:
-                    if not ms:
-                        multipleStratsConjunction = False
+                    if ms:
+                        oneWithMultipleStrats = True
                         break
                 for sr in stratRemoved:
                     if sr:
-                        stratRemovedDisjunction = True
+                        oneStratRemoved = True
                         break
-            return
+                for p in checked:
+                    if not p:
+                        oneNotChecked = True
+                        break
+                if not oneWithMultipleStrats:
+                    oneStratRemoved = False
+                    oneNotChecked = False
+        return
     
     def eliminateStrictlyDominatedStrategies_step(self):
         return
@@ -1488,11 +1544,23 @@ iesds = [
     ]
 ]
 
+iesds_3 = [
+    [
+        [[5, 2, 1], [3, 4, 1]],
+        [[1, 6, 1], [7, 8, 1]]
+    ],
+    [
+        [[9, 10, 2], [11, 12, 2]],
+        [[13, 14, 2], [15, 16, 2]]
+    ]
+]
+
 G = SimGame(2)
 G.enterData(2, [3, 3], iesds)
 # G.saveToFile("text files/rps.txt")
 G.print()
 G.eliminateStrictlyDominatedStrategies_full()
+print("AFTER:")
 G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
@@ -1504,8 +1572,10 @@ G.print()
 
 # H = SimGame(3)
 # H.print()
-# H.enterData(twoEq_3players, 3, [2, 2, 2])
+# H.enterData(3, [2, 2, 2], iesds_3)
 # print("br test:")
+# H.print()
+# H.eliminateStrictlyDominatedStrategies_full()
 # H.print()
 # H.computeBestResponses()
 # H.printBestResponses()
