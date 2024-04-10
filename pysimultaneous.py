@@ -204,7 +204,8 @@ class Player:
         self.numStrats = numStrats
         self.rationality = rationality
 
-class SimGame:    
+class SimGame:
+    iesdsLog = []
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
