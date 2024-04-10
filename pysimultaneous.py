@@ -707,10 +707,12 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
+                            iesdsLog.append([x % self.numPlayers], pair[0])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
+                            iesdsLog.append([x % self.numPlayers], pair[1])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers])(all equal) or (lessThanFound[x % self.numPlayers] and greaterThanFound[x % self.numPlayers])(no dominance)
@@ -742,10 +744,12 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
+                            iesdsLog.append([x % self.numPlayers], pair[0])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
+                            iesdsLog.append([x % self.numPlayers], pair[1])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
@@ -828,10 +832,12 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
+                            iesdsLog.append([x % self.numPlayers], pair[0])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
+                            iesdsLog.append([x % self.numPlayers], pair[1])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
