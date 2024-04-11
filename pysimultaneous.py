@@ -216,10 +216,10 @@ class SimGame:
     players = []
     pureEquilibria = []
     rationalityProbabilities = [0.0 for i in range(4)] # probability a player is L_i, i = 0, 1, 2, 3
-    removedStrategies = []
     removedCols = []
     removedMatrices = []
     removedRows = []
+    removedStrategies = []
     strategyNames = []
     
     def __init__(self, numPlayers = 2):
@@ -630,6 +630,10 @@ class SimGame:
     def eliminateStrictlyDominatedStrategies_full(self):
         global originalGame
         originalGame = self
+        
+        self.removedCols = []
+        self.removedMatrices = []
+        self.removedRows = []
         
         strategyIndices = [[k for k in range(self.players[x].numStrats)] for x in range(self.numPlayers)]
         # pairs[x] contains numPlayers-long tuples of strategy indices
@@ -1214,8 +1218,7 @@ class SimGame:
                     else:
                         product = 1
                 m += product
-        self.players[player].numStrats -= 1  
-        self.removedStrategies.append([player, s])
+        self.players[player].numStrats -= 1
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
@@ -1582,13 +1585,13 @@ iesds_3 = [
 # for eq in eqs:
 #     print(eq)
 
-H = SimGame(3)
+# H = SimGame(3)
 # H.print()
-H.enterData(3, [2, 2, 2], iesds_3)
+# H.enterData(3, [2, 2, 2], iesds_3)
 # print("br test:")
-H.print()
-H.eliminateStrictlyDominatedStrategies_full()
-H.print()
+# H.print()
+# H.eliminateStrictlyDominatedStrategies_full()
+# H.print()
 # H.computeBestResponses()
 # H.printBestResponses()
 # print(H.computePureEquilibria())
