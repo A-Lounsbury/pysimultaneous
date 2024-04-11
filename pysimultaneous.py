@@ -1209,7 +1209,7 @@ class SimGame:
                         product = 1
                 m += product
         self.players[player].numStrats -= 1  
-        self.removedStrategies.append([x, s])
+        self.removedStrategies.append([player, s])
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
