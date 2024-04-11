@@ -205,7 +205,7 @@ class Player:
         self.rationality = rationality
 
 class SimGame:
-    iesdsLog = []
+    removedStrategies = []
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
@@ -707,12 +707,10 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
-                            self.iesdsLog.append([x % self.numPlayers, pair[0]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
-                            self.iesdsLog.append([x % self.numPlayers, pair[1]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers])(all equal) or (lessThanFound[x % self.numPlayers] and greaterThanFound[x % self.numPlayers])(no dominance)
@@ -744,12 +742,10 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
-                            self.iesdsLog.append([x % self.numPlayers, pair[0]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
-                            self.iesdsLog.append([x % self.numPlayers, pair[1]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
@@ -832,12 +828,10 @@ class SimGame:
                         # Removing strategies based on the results
                         if lessThanFound[x % self.numPlayers] and not greaterThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[0]
                             self.removeStrategy(x % self.numPlayers, pair[0])
-                            self.iesdsLog.append([x % self.numPlayers, pair[0]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         elif greaterThanFound[x % self.numPlayers] and not lessThanFound[x % self.numPlayers] and not equalFound[x % self.numPlayers]: # remove strategy pair[1]
                             self.removeStrategy(x % self.numPlayers, pair[1])
-                            self.iesdsLog.append([x % self.numPlayers, pair[1]])
                             strategyIndices[x % self.numPlayers].pop()
                             stratRemoved[x % self.numPlayers] = True
                         else: # (not lessThanFound[1] and not greaterThanFound[1]) or (lessThanFound[1] and greaterThanFound[1])
@@ -1214,7 +1208,8 @@ class SimGame:
                     else:
                         product = 1
                 m += product
-        self.players[player].numStrats -= 1      
+        self.players[player].numStrats -= 1  
+        self.removedStrategies.append([x, s])
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
