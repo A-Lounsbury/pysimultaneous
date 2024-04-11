@@ -205,7 +205,6 @@ class Player:
         self.rationality = rationality
 
 class SimGame:
-    removedStrategies = []
     kMatrix = []
     kOutcomes = [] # n-tuples that appear in kMatrix; won't be all of them
     kStrategies = [[] for r in range(4)] # 2D matrix containing the strategies each player would play for k-levels 0, 1, 2, 3
@@ -217,6 +216,10 @@ class SimGame:
     players = []
     pureEquilibria = []
     rationalityProbabilities = [0.0 for i in range(4)] # probability a player is L_i, i = 0, 1, 2, 3
+    removedStrategies = []
+    removedCols = []
+    removedMatrices = []
+    removedRows = []
     strategyNames = []
     
     def __init__(self, numPlayers = 2):
@@ -1160,9 +1163,11 @@ class SimGame:
             s (int): index of the strategy
         """
         if player == 0: # x is player 1
+            self.removedRows.append(s)
             for m in range(len(self.payoffMatrix)):
                 del self.payoffMatrix[m][s]
         elif player == 1: # x is player 2
+            self.removedCols.append(s)
             for m in range(len(self.payoffMatrix)):
                 for i in range(len(self.payoffMatrix[m])):
                     del self.payoffMatrix[m][i][s]
@@ -1188,6 +1193,7 @@ class SimGame:
             
             numDeleted = 0
             while numDeleted < numToDelete:
+                self.removedMatrices.append(m - numDeleted)
                 del self.payoffMatrix[m - numDeleted]
                 numDeleted += 1
                 
