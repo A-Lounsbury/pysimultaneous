@@ -242,7 +242,7 @@ class SimGame:
         else:
             if self.players[0].numStrats == 3:
                 middle = ["M"]
-            else: # > 3
+            else: # [0].numStrats > 3
                 middle = ["M" + str(i) for i in range(1, self.players[0].numStrats - 1)]
             self.strategyNames.append(["U"] + middle + ["D"])
         if self.players[1].numStrats < 3:
@@ -250,15 +250,19 @@ class SimGame:
         else:
             if self.players[1].numStrats == 3:
                 center = ["C"]
-            else: # > 3
+            else: # [1].numStrats > 3
                 center = ["C" + str(j) for j in range(1, self.players[1].numStrats - 1)]
             self.strategyNames.append(["L"] + center + ["R"])
         if self.numPlayers > 2:
             for x in range(2, self.numPlayers):
+                center = []
                 if self.players[x].numStrats < 3:
-                    self.strategyNames.append(["L(" + str(x + 1) + ")", "R(" + str(x + 1) + ")"])
-                else: 
-                    self.strategyNames.append(["L(" + str(x + 1) + ")"] + ["C(" + str(x + 1) + ", " + str(s + 1) + ")" for s in range(self.players[x].numStrats)] + ["R(" + str(x + 1) + ")"])
+                    center = []
+                elif self.players[x].numStrats == 3:
+                    center = ["C(" + str(x + 1) + ")"]
+                else:
+                    center = ["C(" + str(x + 1) + ", " + str(s) + ")" for s in range(1, self.players[x].numStrats - 1)]
+                self.strategyNames.append(["L(" + str(x + 1) + ")"] + center + ["R(" + str(x + 1) + ")"])
         
         self.numPlayers = numPlayers
         
@@ -1253,6 +1257,36 @@ class SimGame:
                         product = 1
                 m += product
         self.players[player].numStrats -= 1
+    
+    def resetStrategyNames(self):
+        self.strategyNames = []
+        if self.players[0].numStrats < 3:
+            self.strategyNames.append(["U", "D"])
+        else:
+            if self.players[0].numStrats == 3:
+                middle = ["M"]
+            else: # [0].numStrats > 3
+                middle = ["M" + str(i) for i in range(1, self.players[0].numStrats - 1)]
+            self.strategyNames.append(["U"] + middle + ["D"])
+        if self.players[1].numStrats < 3:
+            self.strategyNames.append(["L", "R"])
+        else:
+            if self.players[1].numStrats == 3:
+                center = ["C"]
+            else: # [1].numStrats > 3
+                center = ["C" + str(j) for j in range(1, self.players[1].numStrats - 1)]
+            self.strategyNames.append(["L"] + center + ["R"])
+        if self.numPlayers > 2:
+            for x in range(2, self.numPlayers):
+                center = []
+                if self.players[x].numStrats < 3:
+                    center = []
+                elif self.players[x].numStrats == 3:
+                    center = ["C(" + str(x + 1) + ")"]
+                else:
+                    center = ["C(" + str(x + 1) + ", " + str(s) + ")" for s in range(1, self.players[x].numStrats - 1)]
+                self.strategyNames.append(["L(" + str(x + 1) + ")"] + center + ["R(" + str(x + 1) + ")"])
+        return
     
     def saveToFile(self, fileName):
         """Saves the data of a game to a text file
