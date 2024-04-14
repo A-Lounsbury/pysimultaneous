@@ -1611,13 +1611,13 @@ freeMoney = [
     ]
 ]
 
-G = SimGame(2)
-G.enterData(2, [3, 3], iesds)
+# G = SimGame(2)
+# G.enterData(2, [3, 3], iesds)
 # G.saveToFile("text files/rps.txt")
-G.print()
-G.eliminateStrictlyDominatedStrategies_full()
-print("AFTER:")
-G.print()
+# G.print()
+# G.eliminateStrictlyDominatedStrategies_full()
+# print("AFTER:")
+# G.print()
 # G.computeBestResponses()
 # eqs = G.computePureEquilibria()
 # G.printBestResponses()
