@@ -898,6 +898,9 @@ class SimGame:
             self.originalNumStrats = [self.players[x].numStrats for x in range(self.numPlayers)]
             self.originalPayoffMatrix = self.payoffMatrix
         
+        self.removedMatrices = []
+        self.removedRows = []
+        self.removedCols = []
         self.numIESDSSteps += 1
         # strategyIndices[x] is the set of indices (0, 1, 2,...,numStrats[x] - 1) for the x-th player
         # strategyIndices[x][k] is the k-th strategy index for the x-th player
