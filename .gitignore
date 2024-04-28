@@ -2,6 +2,7 @@ text files/
 pysimultaneous_numpy.py
 scipy_test.py
 sympy_test.py
+old_computeBestResponses.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -303,78 +303,50 @@ class SimGame:
         self.originalPayoffMatrix = self.payoffMatrix
         return
     
-    def computeBestResponses(self):
-        for x in range(self.numPlayers):
-            if x == 0:
-                for m in range(len(self.payoffMatrix)):
-                    for j in range(self.players[1].numStrats):
-                        maxValue = -1000000
-                        # finding the max value
-                        for i in range(self.players[0].numStrats):
-                            curList = self.payoffMatrix[m][i][j]
-                            if curList.getListNode(0).payoff > maxValue:
-                                maxValue = curList.getListNode(0).payoff
-                        # comparing the payoffs to the max value
-                        for i in range(self.players[0].numStrats):
-                            curList = self.payoffMatrix[m][i][j]
-                            if curList.getListNode(0).payoff == maxValue: # don't need >= because it's the max
-                                curList.getListNode(0).bestResponse = True
-                            else:
-                                curList.getListNode(0).bestResponse = False
-            elif x == 1:
-                for m in range(len(self.payoffMatrix)):
-                    for i in range(self.players[0].numStrats):
-                        maxValue = -1000000
-                        # finding the max value
-                        for j in range(self.players[1].numStrats):
-                            curList = self.payoffMatrix[m][i][j]
-                            if curList.getListNode(1).payoff > maxValue:
-                                maxValue = curList.getListNode(1).payoff
-                        # comparing the payoffs to the max value
-                        for j in range(self.players[1].numStrats):
-                            curList = self.payoffMatrix[m][i][j]
-                            if curList.getListNode(1).payoff == maxValue:
-                                curList.getListNode(1).bestResponse = True
-                            else:
-                                curList.getListNode(1).bestResponse = False
-            else: # x > 1
-                m = 0
-                product = 1
-                profile = [0 for x in range(self.numPlayers)]
-                while m < len(self.payoffMatrix):
-                    profile = self.toProfile(m)
-                    for i in range(self.players[0].numStrats):
-                        for j in range(self.players[1].numStrats):
-                            maxValue = -1000000
-                            
-                            # Comparing player x's strategies with each other, keeping player x's strategy the same, so we vary over player x's strategies (?)
-                            
-                            # FIXME?
-                            # finding maxValue
-                            profile[x] = 0
-                            while profile[x] < self.players[x].numStrats:
-                                curList = self.payoffMatrix[self.toIndex(profile)][i][j]
-                                if curList.getListNode(x).payoff > maxValue:
-                                    maxValue = curList.getListNode(x).payoff
-                                profile[x] += 1
-                            
-                            # check through ij-entries in each section
-                            profile[x] = 0
-                            while profile[x] < self.players[x].numStrats:
-                                curList = self.payoffMatrix[self.toIndex(profile)][i][j]
-                                if curList.getListNode(x).payoff == maxValue:
-                                    curList.getListNode(x).bestResponse = True        
-                                else:        
-                                    curList.getListNode(x).bestResponse = False
-                                profile[x] += 1
-                    # move to the next m
-                    if x > 2 and x < self.numPlayers - 1 and product == 1:
-                        for y in range(2, x):
-                            product *= self.players[y].numStrats
-                    m += product
-                return
+    def appendStrategy(self, x, payoffs):
+        """Appends a strategy to player x + 1's list of strategies
+
+        Args:
+            x (int): the index of the player
+            payoffs (list of lists or list of lists of lists): the payoffs of the strategy to be appended
+        """
+        self.players[x].numStrats += 1
+        if x == 0: # add a new row to every matrix
+            numMatrices = 1
+            for y in range(2, self.numPlayers):
+                numMatrices *= self.players[y].numPlayers
+            for m in range(numMatrices):
+                self.payoffMatrix[m].append(payoffs[m])
+        elif x == 1: # add a new column to every matrix
+            numMatrices = 1
+            for y in range(2, self.numPlayers):
+                numMatrices *= self.players[y].numPlayers
+            for m in range(numMatrices):
+                for i in range(len(payoffs[0])):
+                    self.payoffMatrix[m][i].append(payoffs[m][i])
+        else: # x > 1 add new matrices
+            # We want to insert after the product of numStrats *below* player x + 1 for each number 1, 2,...,prodNumStratsAboveX, *plus* the number of matrices we've added
+            numMatricesBeforeX = 1
+            for y in range(2, x):
+                numMatricesBeforeX *= self.players[y].numStrats
+            numMatricesUpToX = 1
+            for y in range(2, x + 1):
+                numMatricesUpToX *= self.players[y].numStrats
+            productNumStratsAboveX = 1
+            for y in range(x + 1, self.numPlayers):
+                productNumStratsAboveX *= self.players[y].numStrats
+            numMatricesAdded = 0
+            multiplicand = 0
+            while len(payoffs) > 0
+                # Inserting the new matrix
+                self.payoffMatrix.insert(numMatricesUpToX * multiplicand + numMatricesAdded, payoffs[0])
+                payoffs.pop(0)
+                numMatricesAdded += 1
+                if numMatricesAdded % numMatricesBeforeX == 0:
+                    multiplicand += 1
+        return
     
-    def computeBestResponses2(self):
+    def computeBestResponses(self):
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
                 for j in range(self.players[1].numStrats):
@@ -388,6 +360,7 @@ class SimGame:
                         br = self.isBestResponse([i, j] + self.toProfile(m)[2:])
                         for x in range(self.numPlayers):
                             self.payoffMatrix[m][i][j].getListNode(x).bestResponse = br[x]
+        return
 
     def computeEquilibria(self):
         equilibria = self.computePureEquilibria() + self.computeMixedEquilibria()
@@ -1214,8 +1187,7 @@ class SimGame:
         """Checks whether p1Strat and p2Strat are best responses relative to each other
 
         Args:
-            p1Strat (int): p1's strategy
-            p2Strat (int): p2's strategy
+            profile (int): the strategies to be checked
         """
         br = [True for x in range(self.numPlayers)]
         if self.numPlayers < 3:
@@ -1890,42 +1862,15 @@ freeMoney = [
 
 # G = SimGame(2)
 # G.enterData(2, [3, 3], iesds)
-# G.saveToFile("text files/rps.txt")
 # G.print()
-# G.eliminateStrictlyDominatedStrategies_step()
-# print("after 1:")
-# G.print()
-# G.eliminateStrictlyDominatedStrategies_step()
-# print("after 2:")
-# G.print()
-# G.eliminateStrictlyDominatedStrategies_step()
-# print("after 3:")
-# G.print()
-# G.eliminateStrictlyDominatedStrategies_step()
-# print("after 4:")
-# G.print()
-# G.eliminateStrictlyDominatedStrategies_step()
-# print("after 5:")
-# G.print()
-# G.computeBestResponses()
-# eqs = G.computePureEquilibria()
+# G.computeBestResponses2()
 # G.printBestResponses()
-# print("EQS:", G.computeEquilibria())
 
-# for eq in eqs:
-#     print(eq)
-
-# H = SimGame(3)
-# H.print()
-# H.enterData(3, [2, 2, 2], iesds_3)
-# print("br test:")
-# H.print()
-# H.eliminateStrictlyDominatedStrategies_full()
-# H.print()
-# H.computeBestResponses()
-# H.printBestResponses()
-# print(H.computePureEquilibria())
-# print(H.computeEquilibria())
+H = SimGame(3)
+H.enterData(3, [2, 2, 2], iesds_3)
+H.print()
+H.computeBestResponses()
+H.printBestResponses()
 
 # I = SimGame(4)
 # I.enterData(arr_4players, 4, [2, 2, 3, 3])
