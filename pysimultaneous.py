@@ -10,6 +10,10 @@ from sympy import solve
 from sympy import simplify
 import warnings
 from pprint import pprint
+import colorama
+from colorama import init, Fore, Style
+
+init()
 
 class ListNode:
     head = None
@@ -41,6 +45,15 @@ class ListNode:
             curNode = curNode.next
         
         curNode.next = newNode
+        return
+    
+    def decapitate(self):
+        """Removes the head ListNode
+        """
+        if self.head == None:
+            return
+        
+        self.head = self.head.next
         return
         
     def getListNode(self, index):
@@ -97,6 +110,12 @@ class ListNode:
             else:
                 print("Index not present")
         return
+    
+    def load(self, payoffs):
+        self = ListNode(payoffs[0], False)
+        for payoff in payoffs[1:]:
+            self.append(payoff, False)
+        return self
         
     def pop(self):
         """Removes the last node from the linked list
@@ -115,7 +134,7 @@ class ListNode:
         curNode = self.head
         size = self.size()
         x = 0
-        while(curNode):
+        while curNode:
             if x < size - 1:
                 print(curNode.payoff, end=", ")
             else:
@@ -158,15 +177,6 @@ class ListNode:
                 curNode.next = curNode.next.next
             else:
                 print("Index not present")
-        return
-                
-    def decapitate(self):
-        """Removes the head ListNode
-        """
-        if self.head == None:
-            return
-        
-        self.head = self.head.next
         return
     
     def size(self):
@@ -308,42 +318,106 @@ class SimGame:
 
         Args:
             x (int): the index of the player
-            payoffs (list of lists or list of lists of lists): the payoffs of the strategy to be appended
+            payoffs (list of lists of ListNodes or list of lists of lists of ListNodes): the payoffs of the strategy to be appended, lists of outcomes
         """
-        self.players[x].numStrats += 1
         if x == 0: # add a new row to every matrix
+            # payoffs will be a list of list of ListNodes that should be numPlayers-long.
+            inputValid = True
             numMatrices = 1
             for y in range(2, self.numPlayers):
-                numMatrices *= self.players[y].numPlayers
-            for m in range(numMatrices):
-                self.payoffMatrix[m].append(payoffs[m])
+                numMatrices *= self.players[y].numStrats
+            correctNumRows = True
+            if len(payoffs) != numMatrices:
+                correctNumRows = False
+            correctNumPayoffs = True
+            for row in payoffs:
+                for outcome in row:
+                    if outcome.size() != self.numPlayers:
+                        wrongSize = outcome.size()
+                        correctNumPayoffs = False
+            if correctNumRows and correctNumPayoffs:
+                inputValid = True
+            else:
+                inputValid = False
+            if inputValid:
+                self.players[x].numStrats += 1
+                for m in range(numMatrices):
+                    self.payoffMatrix[m].append(payoffs[m])
+            elif not correctNumRows:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} rows, but {len(payoffs)} were provided." + Style.RESET_ALL)
+            elif not correctNumPayoffs:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
         elif x == 1: # add a new column to every matrix
+            inputValid = True
             numMatrices = 1
             for y in range(2, self.numPlayers):
-                numMatrices *= self.players[y].numPlayers
-            for m in range(numMatrices):
-                for i in range(len(payoffs[0])):
-                    self.payoffMatrix[m][i].append(payoffs[m][i])
+                numMatrices *= self.players[y].numStrats
+            correctNumCols = True
+            if len(payoffs) != numMatrices:
+                correctNumRows = False
+            correctNumPayoffs = True
+            for row in payoffs:
+                for outcome in row:
+                    if outcome.size() != self.numPlayers:
+                        wrongSize = outcome.size()
+                        correctNumPayoffs = False
+            if correctNumCols and correctNumPayoffs:
+                inputValid = True
+            else:
+                inputValid = False
+            if inputValid:
+                self.players[x].numStrats += 1
+                
+                for m in range(numMatrices):
+                    for i in range(len(payoffs[0])):
+                        self.payoffMatrix[m][i].append(payoffs[m][i])
+            elif not correctNumCols:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} columns, but {len(payoffs)} were provided." + Style.RESET_ALL)
+            elif not correctNumPayoffs:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
         else: # x > 1 add new matrices
             # We want to insert after the product of numStrats *below* player x + 1 for each number 1, 2,...,prodNumStratsAboveX, *plus* the number of matrices we've added
-            numMatricesBeforeX = 1
-            for y in range(2, x):
-                numMatricesBeforeX *= self.players[y].numStrats
-            numMatricesUpToX = 1
-            for y in range(2, x + 1):
-                numMatricesUpToX *= self.players[y].numStrats
-            productNumStratsAboveX = 1
-            for y in range(x + 1, self.numPlayers):
-                productNumStratsAboveX *= self.players[y].numStrats
-            numMatricesAdded = 0
-            multiplicand = 0
-            while len(payoffs) > 0
-                # Inserting the new matrix
-                self.payoffMatrix.insert(numMatricesUpToX * multiplicand + numMatricesAdded, payoffs[0])
-                payoffs.pop(0)
-                numMatricesAdded += 1
-                if numMatricesAdded % numMatricesBeforeX == 0:
-                    multiplicand += 1
+            inputValid = True
+            numMatricesToAdd = 1
+            for y in range(2, self.numPlayers):
+                if y != x:
+                    numMatricesToAdd *= self.players[y].numStrats
+            correctNumMatrices = True
+            if len(payoffs) != numMatricesToAdd:
+                correctNumMatrices = False
+            correctNumPayoffs = True
+            for matrix in payoffs:
+                for row in matrix:
+                    for outcome in row:
+                        if outcome.size() != self.numPlayers:
+                            wrongSize = outcome.size()
+                            correctNumPayoffs = False
+            if not correctNumMatrices or not correctNumPayoffs:
+                inputValid = False
+            if inputValid:
+                numMatricesBeforeX = 1
+                for y in range(2, x):
+                    numMatricesBeforeX *= self.players[y].numStrats
+                numMatricesUpToX = 1
+                for y in range(2, x + 1):
+                    numMatricesUpToX *= self.players[y].numStrats
+                productNumStratsAboveX = 1
+                for y in range(x + 1, self.numPlayers):
+                    productNumStratsAboveX *= self.players[y].numStrats
+                numMatricesAdded = 0
+                multiplicand = 1
+                while len(payoffs) > 0:
+                    # Inserting the new matrix
+                    self.payoffMatrix.insert(numMatricesUpToX * multiplicand + numMatricesAdded, payoffs[0])
+                    payoffs.pop(0)
+                    numMatricesAdded += 1
+                    if numMatricesAdded % numMatricesBeforeX == 0:
+                        multiplicand += 1
+                self.players[x].numStrats += 1
+            elif not correctNumMatrices:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} arrays. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
+            elif not correctNumPayoffs:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
         return
     
     def computeBestResponses(self):
@@ -1144,8 +1218,8 @@ class SimGame:
         
         self.payoffMatrix = []
         numMatrices = 1
-        for x in range(2, oldNumPlayers):
-            numMatrices *= oldNumStrats[x]
+        for x in range(2, numPlayers):
+            numMatrices *= numStrats[x]
         for m in range(numMatrices):
             matrix = []
             for i in range(self.players[0].numStrats):
@@ -1860,25 +1934,114 @@ freeMoney = [
     ]
 ]
 
-# G = SimGame(2)
-# G.enterData(2, [3, 3], iesds)
-# G.print()
-# G.computeBestResponses2()
-# G.printBestResponses()
+# o1 = ListNode()
+# o2 = ListNode()
+# o1 = o1.load([100, 100])
+# o2 = o2.load([200, 200])
+# append_2 = [
+#     [o1, o2]
+# ]
 
-H = SimGame(3)
-H.enterData(3, [2, 2, 2], iesds_3)
-H.print()
-H.computeBestResponses()
-H.printBestResponses()
+# G = SimGame(2)
+# G.appendStrategy(0, append_2)
+# G.print()
+
+# o1 = o1.load([1, 1, 1])
+# o2 = o2.load([2, 2, 2])
+# o3 = ListNode()
+# o4 = ListNode()
+# o3 = o3.load([3, 3, 3])
+# o4 = o4.load([4, 4, 4])
+
+# append_3 = [
+#     [o1, o2],
+#     [o3, o4]
+# ]
+
+# append_3_player3 = [
+#     [
+#         [o1, o2],
+#         [o3, o4]
+#     ]
+# ]
+
+# H = SimGame(3)
+# H.appendStrategy(2, append_3_player3)
+# H.print()
+
+# o1 = ListNode()
+# o2 = ListNode()
+# o1 = o1.load([1, 1, 1, 1, 1])
+# o2 = o2.load([2, 2, 2, 2, 2])
+# o3 = ListNode()
+# o4 = ListNode()
+# o3 = o3.load([3, 3, 3, 3, 3])
+# o4 = o4.load([4, 4, 4, 4, 4])
+# o5 = ListNode()
+# o6 = ListNode()
+# o7 = ListNode()
+# o8 = ListNode()
+# o9 = ListNode()
+# o10 = ListNode()
+# o11 = ListNode()
+# o12 = ListNode()
+# o13 = ListNode()
+# o14 = ListNode()
+# o15 = ListNode()
+# o16 = ListNode()
+# o5 = o5.load([5, 5, 5, 5, 5])
+# o6 = o5.load([6, 6, 6, 6, 6])
+# o7 = o5.load([7, 7, 7, 7, 7])
+# o8 = o5.load([8, 8, 8, 8, 8])
+# o9 = o9.load([9, 9, 9, 9, 9])
+# o10 = o10.load([10, 10, 10, 10, 10])
+# o11 = o11.load([11, 11, 11, 11, 11])
+# o12 = o12.load([12, 12, 12, 12, 12])
+# o13 = o13.load([13, 13, 13, 13, 13])
+# o14 = o14.load([14, 14, 14, 14, 14])
+# o15 = o15.load([15, 15, 15, 15, 15])
+# o16 = o16.load([16, 16, 16, 16, 16])
+
+# append_4 = [
+#     [
+#         [o1, o2],
+#         [o3, o4]
+#     ],
+#     [
+#         [o5, o6],
+#         [o7, o8]
+#     ],
+#     [
+#         [o9, o10],
+#         [o11, o12]
+#     ]
+# ]
 
 # I = SimGame(4)
-# I.enterData(arr_4players, 4, [2, 2, 3, 3])
-# I.removeStrategy(0, 1)
+# I.enterData(4, [2, 2, 3, 3], arr_4players)
+# I.appendStrategy(3, append_4)
 # I.print()
 
+# append_5 = [
+#     [
+#         [o1, o2],
+#         [o3, o4]
+#     ],
+#     [
+#         [o5, o6],
+#         [o7, o8]
+#     ],
+#     [
+#         [o9, o10],
+#         [o11, o12]
+#     ],
+#     [
+#         [o13, o14],
+#         [o15, o16]
+#     ]
+# ]
+
 # J = SimGame(5)
-# J.enterData(arr_5players, 5, [2, 2, 3, 3, 3])
-# J.removeStrategy(2, 0)
-# print("J:")
+# J.enterData(5, [2, 2, 2, 2, 2], arr_5players)
+# J.appendStrategy(2, append_5)
 # J.print()
