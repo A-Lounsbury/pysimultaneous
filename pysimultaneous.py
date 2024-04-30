@@ -47,6 +47,17 @@ class ListNode:
         curNode.next = newNode
         return
     
+    def checkIfFloats(self):
+        allFloats = True
+        curNode = self.head
+        t = ""
+        while curNode:
+            if not isinstance(curNode.payoff, float):
+                t = type(curNode.payoff).__name__
+                allFloats = False
+                break
+        return (allFloats, t)
+    
     def decapitate(self):
         """Removes the head ListNode
         """
@@ -319,7 +330,7 @@ class SimGame:
         Args:
             x (int): the index of the player
             payoffs (list of lists of ListNodes or list of lists of lists of ListNodes): the payoffs of the strategy to be appended, lists of outcomes
-        """
+        """        
         if x == 0: # add a new row to every matrix
             # payoffs will be a list of list of ListNodes that should be numPlayers-long.
             inputValid = True
@@ -335,7 +346,21 @@ class SimGame:
                     if outcome.size() != self.numPlayers:
                         wrongSize = outcome.size()
                         correctNumPayoffs = False
-            if correctNumRows and correctNumPayoffs:
+            allFloats = True
+            broke = False
+            wrongType = ""
+            for row in payoffs:
+                for outcome in row:
+                    pair = outcome.checkIfFloats()
+                    if not pair[0]:
+                        wrongType = pair[1]
+                        allFloats = False
+                        broke = True
+                        break
+                if broke:
+                    break
+                    
+            if correctNumRows and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
                 inputValid = True
             else:
                 inputValid = False
@@ -347,6 +372,16 @@ class SimGame:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} rows, but {len(payoffs)} were provided." + Style.RESET_ALL)
             elif not correctNumPayoffs:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
+            elif not isinstance(x, int):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected an integer player index, but received {x} instead." + Style.RESET_ALL)
+            elif x < 0 or x >= self.numPlayers:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a player index between 0 and {self.numPlayers - 1}, but received {x} instead." + Style.RESET_ALL)
+            elif not isinstance(payoffs, list):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a list of payoffs, but received a {type(payoffs).__name__} instead" + Style.RESET_ALL)
+            elif len(payoffs) == 0:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs parameter must be a nonempty list." + Style.RESET_ALL)
+            elif not allFloats:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs must be floats. Received {wrongType} instead." + Style.RESET_ALL)      
         elif x == 1: # add a new column to every matrix
             inputValid = True
             numMatrices = 1
@@ -361,7 +396,21 @@ class SimGame:
                     if outcome.size() != self.numPlayers:
                         wrongSize = outcome.size()
                         correctNumPayoffs = False
-            if correctNumCols and correctNumPayoffs:
+            allFloats = True
+            broke = False
+            wrongType = ""
+            for row in payoffs:
+                for outcome in row:
+                    pair = outcome.checkIfFloats()
+                    if not pair[0]:
+                        wrongType = pair[1]
+                        allFloats = False
+                        broke = True
+                        break
+                if broke:
+                    break
+                        
+            if correctNumCols and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
                 inputValid = True
             else:
                 inputValid = False
@@ -375,6 +424,16 @@ class SimGame:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} columns, but {len(payoffs)} were provided." + Style.RESET_ALL)
             elif not correctNumPayoffs:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
+            elif not isinstance(x, int):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected an integer player index, but received {x} instead." + Style.RESET_ALL)
+            elif x < 0 or x >= self.numPlayers:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a player index between 0 and {self.numPlayers - 1}, but received {x} instead." + Style.RESET_ALL)
+            elif not isinstance(payoffs, list):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a list of payoffs, but received a {type(payoffs).__name__} instead" + Style.RESET_ALL)
+            elif len(payoffs) == 0:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs parameter must be a nonempty list." + Style.RESET_ALL)
+            elif not allFloats:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs must be floats. Received {wrongType} instead." + Style.RESET_ALL)  
         else: # x > 1 add new matrices
             # We want to insert after the product of numStrats *below* player x + 1 for each number 1, 2,...,prodNumStratsAboveX, *plus* the number of matrices we've added
             inputValid = True
@@ -392,7 +451,23 @@ class SimGame:
                         if outcome.size() != self.numPlayers:
                             wrongSize = outcome.size()
                             correctNumPayoffs = False
-            if not correctNumMatrices or not correctNumPayoffs:
+            allFloats = True
+            broke = False
+            wrongType = ""
+            for row in payoffs:
+                for outcome in row:
+                    pair = outcome.checkIfFloats()
+                    if not pair[0]:
+                        wrongType = pair[1]
+                        allFloats = False
+                        broke = True
+                        break
+                if broke:
+                    break            
+                
+            if correctNumMatrices and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
+                inputValid = True
+            else:
                 inputValid = False
             if inputValid:
                 numMatricesBeforeX = 1
@@ -418,6 +493,16 @@ class SimGame:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} arrays. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
             elif not correctNumPayoffs:
                 print(Fore.RED + f"appendStrategy: invalid input. Expected {self.numPlayers} payoffs. An outcome with {wrongSize} payoffs was provided." + Style.RESET_ALL)
+            elif not isinstance(x, int):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected an integer player index, but received {x} instead." + Style.RESET_ALL)
+            elif x < 0 or x >= self.numPlayers:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a player index between 0 and {self.numPlayers - 1}, but received {x} instead." + Style.RESET_ALL)
+            elif not isinstance(payoffs, list):
+                print(Fore.RED + f"appendStrategy: invalid input. Expected a list of payoffs, but received a {type(payoffs).__name__} instead" + Style.RESET_ALL)
+            elif len(payoffs) == 0:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs parameter must be a nonempty list." + Style.RESET_ALL)
+            elif not allFloats:
+                print(Fore.RED + f"appendStrategy: invalid input. The payoffs must be floats. Received {wrongType} instead." + Style.RESET_ALL)
         return
     
     def computeBestResponses(self):
