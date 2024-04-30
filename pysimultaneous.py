@@ -346,12 +346,21 @@ class SimGame:
             correctNumRows = True
             if len(payoffs) != numMatrices:
                 correctNumRows = False
+                
+            correctNumOutcomes = True
+            for row in payoffs:
+                if len(row) != self.players[x].numStrats:
+                    wrongNumOutcomes = len(row)
+                    correctNumOutcomes = False
+                    break
+                
             correctNumPayoffs = True
             for row in payoffs:
                 for outcome in row:
                     if outcome.size() != self.numPlayers:
                         wrongSize = outcome.size()
                         correctNumPayoffs = False
+                        
             allFloats = True
             broke = False
             wrongType = ""
@@ -370,7 +379,7 @@ class SimGame:
                 if broke:
                     break
                     
-            if correctNumRows and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
+            if correctNumRows and correctNumOutcomes and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
                 inputValid = True
             else:
                 inputValid = False
@@ -389,6 +398,11 @@ class SimGame:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} rows, but {len(payoffs)} was provided." + Style.RESET_ALL)
                     else:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} rows, but {len(payoffs)} were provided." + Style.RESET_ALL)
+            elif not correctNumOutcomes:
+                if wrongNumOutcomes == 1:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected {self.players[x].numStrats} outcomes. Received a row with {wrongNumOutcomes} outcome." + Style.RESET_ALL)
+                else:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected {self.players[x].numStrats} outcomes. Received a row with {wrongNumOutcomes} outcomes." + Style.RESET_ALL)
             elif not correctNumPayoffs:
                 if wrongSize == 1:
                     print(Fore.RED + f"appendStrategy: invalid input. expected outcomes with {self.numPlayers} payoffs. An outcome with {wrongSize} payoff was provided." + Style.RESET_ALL)
@@ -412,12 +426,21 @@ class SimGame:
             correctNumCols = True
             if len(payoffs) != numMatrices:
                 correctNumRows = False
+            
+            correctNumOutcomes = True
+            for col in payoffs:
+                if len(col) != self.players[x].numStrats:
+                    wrongNumOutcomes = len(col)
+                    correctNumOutcomes = False
+                    break
+                
             correctNumPayoffs = True
             for row in payoffs:
                 for outcome in row:
                     if outcome.size() != self.numPlayers:
                         wrongSize = outcome.size()
                         correctNumPayoffs = False
+                        
             allFloats = True
             broke = False
             wrongType = ""
@@ -435,7 +458,7 @@ class SimGame:
                 if broke:
                     break
                         
-            if correctNumCols and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
+            if correctNumCols and correctNumOutcomes and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
                 inputValid = True
             else:
                 inputValid = False
@@ -443,8 +466,12 @@ class SimGame:
                 self.players[x].numStrats += 1
                 
                 for m in range(numMatrices):
-                    for i in range(len(payoffs[0])):
-                        self.payoffMatrix[m][i].append(payoffs[m][i])
+                    # FIXME
+                    print("len 1: ", len(self.payoffMatrix[m]))
+                    print("len 2: ", len(payoffs[m]))
+                    for j in range(len(payoffs[0])):
+                        print("\tj: ", j)
+                        self.payoffMatrix[m][j].append(payoffs[m][j])
             elif not correctNumCols:
                 if numMatrices == 1:
                     if len(payoffs) == 1:
@@ -456,6 +483,11 @@ class SimGame:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} columns, but {len(payoffs)} was provided." + Style.RESET_ALL)
                     else:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatrices} columns, but {len(payoffs)} were provided." + Style.RESET_ALL)
+            elif not correctNumOutcomes:
+                if wrongNumOutcomes == 1:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected {self.players[x].numStrats} outcomes. Received a column with {wrongNumOutcomes} outcome." + Style.RESET_ALL)
+                else:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected {self.players[x].numStrats} outcomes. Received a column with {wrongNumOutcomes} outcomes." + Style.RESET_ALL)
             elif not correctNumPayoffs:
                 if wrongSize == 1:
                     print(Fore.RED + f"appendStrategy: invalid input. expected outcomes with {self.numPlayers} payoffs. An outcome with {wrongSize} payoff was provided." + Style.RESET_ALL)
@@ -481,6 +513,21 @@ class SimGame:
             correctNumMatrices = True
             if len(payoffs) != numMatricesToAdd:
                 correctNumMatrices = False
+            
+            # Ensuring the arrays have the correct dimensions
+            correctNumRows = True
+            correctNumCols = True
+            for matrix in payoffs:
+                if len(matrix) != self.players[1].numStrats:
+                    wrongNumRows = len(matrix)
+                    correctNumRows = False
+                    break
+                for row in matrix:
+                    if len(row) != self.players[0].numStrats:
+                        wrongNumCols = len(row)
+                        correctNumCols = False
+                        break
+            
             correctNumPayoffs = True
             for matrix in payoffs:
                 for row in matrix:
@@ -488,6 +535,7 @@ class SimGame:
                         if outcome.size() != self.numPlayers:
                             wrongSize = outcome.size()
                             correctNumPayoffs = False
+                            
             allFloats = True
             broke = False
             wrongType = ""
@@ -537,6 +585,16 @@ class SimGame:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} array. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
                 else:
                     print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} arrays. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
+            elif not correctNumRows:
+                if wrongNumRows == 1:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows. Received a matrix with {wrongNumRows} row.")
+                else:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows. Received a matrix with {wrongNumRows} rows.")
+            elif not correctNumCols:
+                if wrongNumRows == 1:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} columns. Received a matrix with {wrongNumCols} colum.")
+                else:
+                    print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows. Received a matrix with {wrongNumCols} columns.")
             elif not correctNumPayoffs:
                 if wrongSize == 1:
                     print(Fore.RED + f"appendStrategy: invalid input. expected outcomes with {self.numPlayers} payoffs. An outcome with {wrongSize} payoff was provided." + Style.RESET_ALL)
