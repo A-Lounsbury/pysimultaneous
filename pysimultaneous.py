@@ -612,7 +612,6 @@ class SimGame:
                 if len(matrix) != self.players[0].numStrats:
                     wrongNumRows = len(matrix)
                     correctNumRows = False
-                    break
                 for row in matrix:
                     if len(row) != self.players[1].numStrats:
                         wrongNumCols = len(row)
@@ -654,7 +653,7 @@ class SimGame:
                     break
             
             # Input validation
-            if correctNumMatrices and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
+            if correctNumMatrices and correctNumRows and correctNumCols and correctNumPayoffs and isinstance(x, int) and x > -1 and x < self.numPlayers and isinstance(payoffs, list) and len(payoffs) > 0 and allFloats:
                 inputValid = True
             else:
                 inputValid = False
@@ -686,6 +685,12 @@ class SimGame:
                         print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} array. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
                 else:
                     print(Fore.RED + f"appendStrategy: invalid input. Expected {numMatricesToAdd} arrays. Payoffs with {len(payoffs)} arrays were provided." + Style.RESET_ALL)
+            elif not correctNumRows and not correctNumCols:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows and {self.players[1].numStrats} columns. An array with {wrongNumRows} rows and {wrongNumCols} columns was provided." + Style.RESET_ALL)
+            elif not correctNumRows and correctNumCols:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows and {self.players[1].numStrats} columns. An array with {wrongNumRows} rows was provided." + Style.RESET_ALL)
+            elif correctNumRows and not correctNumCols:
+                print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows and {self.players[1].numStrats} columns. An array with {wrongNumCols} columns was provided." + Style.RESET_ALL)
             elif not correctNumRows:
                 if wrongNumRows == 1:
                     print(Fore.RED + f"appendStrategy: invalid input. Expected arrays with {self.players[0].numStrats} rows. Received a matrix with {wrongNumRows} row.")
