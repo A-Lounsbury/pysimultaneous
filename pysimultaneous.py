@@ -254,7 +254,7 @@ class SimGame:
     originalNumPlayers = -1 
     originalNumStrats = []
     originalPayoffMatrix = []
-    outcomeProbabilities = [] # probability of each outcome in kMatrix stored in kOutcomes; P(s_i, s_j)
+    outcomeProbabilities = [] # probability of each outcome in kMatrix stored in kOutcomes; P(i, j)
     payoffMatrix = []
     players = []
     pureEquilibria = []
@@ -755,6 +755,10 @@ class SimGame:
         if numEquilibria % 2 == 0:
             warnings.warn(f"An even number ({numEquilibria}) of equilibria was returned. This indicates that the game is degenerate. Consider using another algorithm to investigate.", RuntimeWarning)
         return equilibria
+    
+    def computeKChoices(self):
+        computeKStrategies()
+        return
     
     def computeKStrategies(self):
         """Computes the strategies that would be chosen for each rationality level
@@ -1771,7 +1775,7 @@ class SimGame:
                     curEntry = self.kMatrix[m][r1][r2]
                     print("(", end="")
                     for x in range(self.numPlayers):
-                        print("s_" + str(curEntry[x]), end="")
+                        print(curEntry[x], end="")
                         if x < self.numPlayers - 1:
                             print(", ", end="")
                     print(")", end="")
@@ -2398,18 +2402,22 @@ freeMoney = [
 #     [[10, 10], [20, 20]]
 # ]
 
-# G = SimGame(2)
-# G.enterData(2, [3, 3], iesds)
+G = SimGame(2)
+G.enterData(2, [3, 3], iesds)
 # G.appendStrategy(1, append_2)
-# G.print()
+G.print()
 # print("kStrategies:", G.kStrategies)
 # kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
 # print("kChoices:", kChoices)
 # G.computeKStrategies()
 # print("kStrategies:", G.kStrategies)
-# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-# print("kChoices:", kChoices)
-# G.printKMatrix()
+kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+print("kChoices:", kChoices)
+G.players[0].rationality = 0
+G.players[1].rationality = 2
+G.printKMatrix()
+kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+print("kChoices:", kChoices)
 
 # o1 = ListNode()
 # o2 = ListNode()
