@@ -760,6 +760,31 @@ class SimGame:
         computeKStrategies()
         return
     
+    def computeKMatrix(self):
+        curEntry = []
+        temp = []
+        inOutcomes = False
+        self.kOutcomes = []
+        self.outcomeProbabilities = []        
+        self.computeKStrategies()
+        for m in range(len(self.kMatrix)):
+            for r1 in range(4):
+                for r2 in range(4):
+                    temp.append(self.kStrategies[r1][0])
+                    temp.append(self.kStrategies[r2][1])
+                    for x in range(2, self.numPlayers):
+                        temp.append(kStrategies[kToProfile(m)[x]][x])
+                        
+                    self.kMatrix[m][r1][r2] = temp
+                    
+                    inOutcomes = False
+                    for n in range(len(self.kOutcomes)):
+                        if self.kOutcomes[n] == temp:
+                            inOutcomes = True
+                    if not inOutcomes:
+                        self.kOutcomes.append(temp)
+                    temp = []
+    
     def computeKStrategies(self):
         """Computes the strategies that would be chosen for each rationality level
         """
@@ -1834,25 +1859,8 @@ class SimGame:
         inOutcomes = False
         self.kOutcomes = []
         self.outcomeProbabilities = []        
-        self.computeKStrategies()
-        for m in range(len(self.kMatrix)):
-            for r1 in range(4):
-                for r2 in range(4):
-                    temp.append(self.kStrategies[r1][0])
-                    temp.append(self.kStrategies[r2][1])
-                    for x in range(2, self.numPlayers):
-                        temp.append(kStrategies[kToProfile(m)[x]][x])
-                        
-                    self.kMatrix[m][r1][r2] = temp
-                    
-                    inOutcomes = False
-                    for n in range(len(self.kOutcomes)):
-                        if self.kOutcomes[n] == temp:
-                            inOutcomes = True
-                    if not inOutcomes:
-                        self.kOutcomes.append(temp)
-                    temp = []
-            
+        self.computeKMatrix()
+        for m in range(len(self.kMatrix)):            
             for r1 in range(4):
                 for r2 in range(4):
                     curEntry = self.kMatrix[m][r1][r2]
@@ -2518,27 +2526,12 @@ freeMoney = [
 # ]
 
 G = SimGame(2)
-G.enterData(2, [2, 2], bos)
+G.enterData(2, [3, 3], iesds)
 # G.appendStrategy(1, append_2)
 G.print()
-print(G.paretoOptimal([0, 0]))
-print(G.paretoOptimal([1, 0]))
-print(G.paretoOptimal([0, 1]))
-print(G.paretoOptimal([1, 1]))
-# print("kStrategies:", G.kStrategies)
-# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-# print("kChoices:", kChoices)
-# G.computeKStrategies()
-# print("kStrategies:", G.kStrategies)
-# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-# print("kChoices:", kChoices)
-# G.players[0].rationality = 0
-# G.players[1].rationality = 2
-# G.printKMatrix()
-# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-# print("kChoices:", kChoices)
-# G.probabilizeKChoices([0.5, 0.5, 0.5, 0.5])
-
+print(G.kMatrix)
+G.computeKMatrix()
+print(G.kMatrix)
 # o1 = ListNode()
 # o2 = ListNode()
 # o3 = ListNode()
