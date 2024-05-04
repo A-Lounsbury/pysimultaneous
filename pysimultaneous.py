@@ -278,6 +278,19 @@ class SimGame:
             else:
                 self.kStrategies[r] = self.kStrategies[r][:numPlayers]
             self.rationalityProbabilities[r] = 0.0
+            
+        # maximum rationality is 3, meaning there are 4 rationality levels
+        numMatrices = 1
+        if numPlayers > 2:
+            numMatrices = 4 ** self.numPlayers
+        
+        for m in range(numMatrices):
+            self.kMatrix.append([])
+            for i in range(4):
+                self.kMatrix[m].append([])
+                for j in range(4):
+                    ell = [-1 for x in range(self.numPlayers)]
+                    self.kMatrix[m][i].append(ell)
         
         # Initializing strategy names
         if self.players[0].numStrats < 3:
@@ -1654,6 +1667,30 @@ class SimGame:
                         m += product
         return br
     
+    def kToProfile(self, m):
+        """Converts an index in a list of payoff arrays into the strategy profile that produces that index
+        """
+        rationality = 0
+        previousValues = 0
+        product = 1
+        rationalityProfile = [-1, -1] + [0 for x in range(2, self.numPlayers)]
+        
+        product = 4 ** (self.numPlayers - 3)
+        
+        for x in range(self.numPlayers - 1, 1, -1):
+            rationality = 0
+            while product * rationality + previousValues < m and rationality != 4:
+                rationality += 1
+                
+            if product * rationality + previousValues > m:
+                rationality -= 1
+                
+            previousValues += product * rationality
+            rationalityProfile[x] = rationality
+            product = product / 4
+            
+        return rationalityProfile
+    
     def maxStrat(self, x):
         """Returns the strategy that gives player x + 1's maximum payoff over all outcomes
         
@@ -1703,6 +1740,45 @@ class SimGame:
                         print()
             if m < len(self.payoffMatrix) - 1:
                 print()
+                
+    def printKMatrix(self):
+        curEntry = []
+        temp = []
+        inOutcomes = False
+        self.kOutcomes = []
+        self.outcomeProbabilities = []        
+        self.computeKStrategies()
+        for m in range(len(self.kMatrix)):
+            for r1 in range(4):
+                for r2 in range(4):
+                    temp.append(self.kStrategies[r1][0])
+                    temp.append(self.kStrategies[r2][1])
+                    for x in range(2, self.numPlayers):
+                        temp.append(kStrategies[kToProfile(m)[x]][x])
+                        
+                    self.kMatrix[m][r1][r2] = temp
+                    
+                    inOutcomes = False
+                    for n in range(len(self.kOutcomes)):
+                        if self.kOutcomes[n] == temp:
+                            inOutcomes = True
+                    if not inOutcomes:
+                        self.kOutcomes.append(temp)
+                    temp = []
+            
+            for r1 in range(4):
+                for r2 in range(4):
+                    curEntry = self.kMatrix[m][r1][r2]
+                    print("(", end="")
+                    for x in range(self.numPlayers):
+                        print("s_" + str(curEntry[x]), end="")
+                        if x < self.numPlayers - 1:
+                            print(", ", end="")
+                    print(")", end="")
+                    if r2 < 3:
+                        print(" ", end="")
+                print()
+            print()
 
     def printBestResponses(self):
         """Prints the payoff matrix
@@ -2333,6 +2409,7 @@ freeMoney = [
 # print("kStrategies:", G.kStrategies)
 # kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
 # print("kChoices:", kChoices)
+# G.printKMatrix()
 
 # o1 = ListNode()
 # o2 = ListNode()
