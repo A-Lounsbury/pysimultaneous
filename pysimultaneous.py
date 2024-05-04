@@ -761,11 +761,14 @@ class SimGame:
         return
     
     def computeKMatrix(self):
+        """Computes the kMatrix as well as kOutcomes in the process
+        """
         curEntry = []
         temp = []
         inOutcomes = False
+        probability = -1.0
+        EU = [0.0 for x in range(self.numPlayers)]
         self.kOutcomes = []
-        self.outcomeProbabilities = []        
         self.computeKStrategies()
         for m in range(len(self.kMatrix)):
             for r1 in range(4):
@@ -776,6 +779,45 @@ class SimGame:
                         temp.append(kStrategies[kToProfile(m)[x]][x])
                         
                     self.kMatrix[m][r1][r2] = temp
+                    
+                    inOutcomes = False
+                    for n in range(len(self.kOutcomes)):
+                        if self.kOutcomes[n] == temp:
+                            inOutcomes = True
+                    if not inOutcomes:
+                        self.kOutcomes.append(temp)
+                    temp = []
+        
+        self.computeOutcomeProbabilities()
+        
+        # Computing expected utilities
+        for x in range(self.numPlayers):
+            EU[x] = 0.0
+            for num in range(len(self.kOutcomes)):
+                if self.numPlayers < 3:
+                    curList = self.payoffMatrix[0][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
+                else:
+                    curList = payoffMatrix[self.toIndex(self.kOutcomes[num])][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
+                EU[x] += curList.getListNode(x).payoff * self.outcomeProbabilities[num]
+        print("EU:", EU)
+        
+    def computeKOutcomes(self):
+        """Computes kOutcomes
+        """
+        curEntry = []
+        temp = []
+        inOutcomes = False
+        probability = -1.0
+        EU = [0.0 for x in range(self.numPlayers)]
+        self.kOutcomes = []
+        self.computeKStrategies()
+        for m in range(len(self.kMatrix)):
+            for r1 in range(4):
+                for r2 in range(4):
+                    temp.append(self.kStrategies[r1][0])
+                    temp.append(self.kStrategies[r2][1])
+                    for x in range(2, self.numPlayers):
+                        temp.append(kStrategies[kToProfile(m)[x]][x])
                     
                     inOutcomes = False
                     for n in range(len(self.kOutcomes)):
@@ -799,10 +841,12 @@ class SimGame:
                 
                 if r == 0:
                     num = self.maxStrat(x) # num is what player x will do at L_0
+                    print("x:", x)
+                    print("MAX STRAT:", num)
                     self.kStrategies[0][x] = num
                 else:
                     # FIXME: finish after writing maxStrat function
-                    others = [0 for x in range(self.numPlayers)]
+                    others = [0 for y in range(self.numPlayers)]
                     for y in range(self.numPlayers):
                         if y == x:
                             others[y] = -1
@@ -825,6 +869,8 @@ class SimGame:
                                     if self.payoffMatrix[m][others[0]][others[1]].getListNode(x).bestResponse:
                                         maxStrat = self.toProfile(m)[x]
                     self.kStrategies[r][x] = maxStrat
+                    print("r:", r)
+                    print("here:", self.kStrategies[r])
                 if r == self.players[x].rationality:
                     self.players[x].kChoice = self.kStrategies[r][x]
         return
@@ -1056,6 +1102,29 @@ class SimGame:
                 print(f"Error: not enough letters to have variables for all {self.numPlayers} players")
             return []
         return []
+    
+    def computeOutcomeProbabilities(self):
+        self.computeKStrategies()
+        print("kStrategies:", self.kStrategies)
+        self.computeKOutcomes()
+        print("kOutcomes:", self.kOutcomes)
+        
+        for n in range(len(self.kOutcomes)):
+            self.outcomeProbabilities.append(0.0)
+        
+        for r1 in range(4):
+            for r2 in range(4):
+                probability = 0.0
+                
+                # find which outcome the kMatrix entry corresponds to
+                index = 0
+                # FIXME: self.kOutcomes has length 0! 
+                while self.kOutcomes[index][0] != self.kStrategies[r1][0] or self.kOutcomes[index][1] != self.kStrategies[r2][1]:
+                    index += 1
+                    
+                probability += self.rationalityProbabilities[r1] * self.rationalityProbabilities[r2]
+                
+                self.outcomeProbabilities[index] = self.outcomeProbabilities[index] + probability
  
     def computePureEquilibria(self):
         self.computeBestResponses()
@@ -1656,7 +1725,7 @@ class SimGame:
                     br[0] = False
             
             for j in chain(range(profile[1]), range(profile[1] + 1, self.players[1].numStrats)):
-                if self.payoffMatrix[0][profile[0]][profile[1]].getListNode(1).payoff < self.payoffMatrix[0][profile[1]][j].getListNode(1).payoff:
+                if self.payoffMatrix[0][profile[0]][profile[1]].getListNode(1).payoff < self.payoffMatrix[0][profile[0]][j].getListNode(1).payoff:
                     br[1] = False
         else:
             for player in range(self.numPlayers):
@@ -1878,6 +1947,7 @@ class SimGame:
     def printBestResponses(self):
         """Prints the payoff matrix
         """
+        self.computeBestResponses()
         if self.numPlayers < 3:
             for i in range(self.players[0].numStrats):
                 for j in range(self.players[1].numStrats):
@@ -1900,21 +1970,8 @@ class SimGame:
                 print()
     
     def probabilizeKChoices(self, probabilities):
-        self.computeKStrategies()
-        self.outcomeProbabilities = [0.0 for n in range(len(self.kOutcomes))]
-        
-        for r1 in range(4):
-            for r2 in range(4):
-                probability = 0.0
-                
-                # find which outcome the kMatrix entry corresponds to
-                index = 0
-                while self.kOutcomes[index][0] != self.kStrategies[r1][0] or self.kOutcomes[index][1] != self.kStrategies[r2][1]:
-                    index += 1
-                    
-                probability += probabilities[r1] * probabilities[r2]
-                
-                self.outcomeProbabilities[index] = self.outcomeProbabilities[index] + probability
+        self.computeKStrategies()        
+        self.computeOutcomeProbabilities()
         
         choices = [0 for x in range(self.numPlayers)]
         for x in range(self.numPlayers):
@@ -2517,6 +2574,14 @@ freeMoney = [
     ]
 ]
 
+krmodel = [
+    [
+        [[2, 12], [5, 6], [9, 0]],
+        [[0, 24], [19, 5], [10, 10]],
+        [[1, 3], [7, 5], [5, 25]],
+    ]
+]
+
 # o1 = ListNode()
 # o2 = ListNode()
 # o1 = o1.load([10, 10])
@@ -2526,12 +2591,12 @@ freeMoney = [
 # ]
 
 G = SimGame(2)
-G.enterData(2, [3, 3], iesds)
+G.enterData(2, [3, 3], krmodel)
 # G.appendStrategy(1, append_2)
 G.print()
-print(G.kMatrix)
-G.computeKMatrix()
-print(G.kMatrix)
+print()
+G.printKMatrix()
+
 # o1 = ListNode()
 # o2 = ListNode()
 # o3 = ListNode()
