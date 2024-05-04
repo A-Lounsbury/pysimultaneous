@@ -788,9 +788,7 @@ class SimGame:
                         self.kOutcomes.append(temp)
                     temp = []
         
-        print("oP before:", self.outcomeProbabilities)
         self.computeOutcomeProbabilities()
-        print("oP after:", self.outcomeProbabilities)
         
         # Computing expected utilities
         for x in range(self.numPlayers):
@@ -800,11 +798,10 @@ class SimGame:
                     curList = self.payoffMatrix[0][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
                 else:
                     curList = payoffMatrix[self.toIndex(self.kOutcomes[num])][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
-                print("po:", curList.getListNode(x).payoff)
-                print("prob:", self.outcomeProbabilities[num])
                 EU[x] += curList.getListNode(x).payoff * self.outcomeProbabilities[num]
                 
-        self.probabilizeKChoices(probabilities)
+        self.probabilizeKChoices()
+        print()
         for x in range(self.numPlayers):
             print("EU_" + str(x) + " = " + str(EU[x]))
         
@@ -848,8 +845,6 @@ class SimGame:
                 
                 if r == 0:
                     num = self.maxStrat(x) # num is what player x will do at L_0
-                    print("x:", x)
-                    print("MAX STRAT:", num)
                     self.kStrategies[0][x] = num
                 else:
                     # FIXME: finish after writing maxStrat function
@@ -876,8 +871,6 @@ class SimGame:
                                     if self.payoffMatrix[m][others[0]][others[1]].getListNode(x).bestResponse:
                                         maxStrat = self.toProfile(m)[x]
                     self.kStrategies[r][x] = maxStrat
-                    print("r:", r)
-                    print("here:", self.kStrategies[r])
                 if r == self.players[x].rationality:
                     self.players[x].kChoice = self.kStrategies[r][x]
         return
@@ -1110,14 +1103,11 @@ class SimGame:
             return []
         return []
     
-    def computeOutcomeProbabilities(self, rationalityProbabilities = [0.25, 0.25, 0.25, 0.25]):
+    def computeOutcomeProbabilities(self):
         self.computeKStrategies()
-        print("kStrategies:", self.kStrategies)
         self.computeKOutcomes()
-        print("kOutcomes:", self.kOutcomes)
-        
-        for n in range(len(self.kOutcomes)):
-            self.outcomeProbabilities.append(0.0)
+
+        self.outcomeProbabilities = [0.0 for n in range(len(self.kOutcomes))]
         
         for r1 in range(4):
             for r2 in range(4):
@@ -1127,8 +1117,6 @@ class SimGame:
                 index = 0 
                 while self.kOutcomes[index][0] != self.kStrategies[r1][0] or self.kOutcomes[index][1] != self.kStrategies[r2][1]:
                     index += 1
-                
-                print("rP:", self.rationalityProbabilities)
                 
                 probability += self.rationalityProbabilities[r1] * self.rationalityProbabilities[r2]
                 
@@ -1931,12 +1919,14 @@ class SimGame:
                 print()
                 
     def printKMatrix(self, probabilities = [0.25, 0.25, 0.25, 0.25]):
+        self.rationalityProbabilities = probabilities
         curEntry = []
         temp = []
         inOutcomes = False
         self.kOutcomes = []
         self.outcomeProbabilities = []        
         self.computeKMatrix(probabilities)
+        print()
         for m in range(len(self.kMatrix)):            
             for r1 in range(4):
                 for r2 in range(4):
@@ -1977,10 +1967,10 @@ class SimGame:
                             print()
                 print()
     
-    def probabilizeKChoices(self, probabilities = [0.25, 0.25, 0.25, 0.25]):
-        self.computeKStrategies()        
-        self.computeOutcomeProbabilities(probabilities)
-        
+    def probabilizeKChoices(self):
+        self.computeKStrategies()    
+        self.computeOutcomeProbabilities()
+
         choices = [0 for x in range(self.numPlayers)]
         for x in range(self.numPlayers):
             choices[x] = self.kStrategies[self.players[x].rationality][x]
@@ -2600,10 +2590,9 @@ krmodel = [
 
 G = SimGame(2)
 G.enterData(2, [3, 3], krmodel)
-# G.appendStrategy(1, append_2)
 G.print()
 print()
-G.printKMatrix()
+G.printKMatrix(probabilities=[0.1, 0.4, 0.4, 0.1])
 
 # o1 = ListNode()
 # o2 = ListNode()
