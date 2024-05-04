@@ -234,10 +234,12 @@ class ListNode:
         return
 
 class Player:
+    kChoice = -1
     numStrats = -1
     rationality = -1
     
     def __init__(self,numStrats = 2, rationality = 0):
+        self.kChoice = -1
         self.numStrats = numStrats
         self.rationality = rationality
 
@@ -740,6 +742,50 @@ class SimGame:
         if numEquilibria % 2 == 0:
             warnings.warn(f"An even number ({numEquilibria}) of equilibria was returned. This indicates that the game is degenerate. Consider using another algorithm to investigate.", RuntimeWarning)
         return equilibria
+    
+    def computeKStrategies(self):
+        """Computes the strategies that would be chosen for each rationality level
+        """
+        self.computeBestResponses()
+        maxStrat = -10000000
+        num = -1
+        others = []
+        
+        for r in range(4):
+            for x in range(self.numPlayers):
+                maxStrat = -10000000
+                
+                if r == 0:
+                    num = self.maxStrat(x) # num is what player x will do at L_0
+                    self.kStrategies[0][x] = num
+                else:
+                    # FIXME: finish after writing maxStrat function
+                    others = [0 for x in range(self.numPlayers)]
+                    for y in range(self.numPlayers):
+                        if y == x:
+                            others[y] = -1
+                        else:
+                            others[y] = self.kStrategies[r - 1][y]
+                            
+                    # Finding the maximum in each row/column/array that has already been chosen
+                    if x == 0:
+                        for i in range(self.players[x].numStrats):
+                            if self.payoffMatrix[self.toIndex(others)][i][others[1]].getListNode(x).bestResponse:
+                                maxStrat = i
+                    elif x == 1:
+                        for j in range(self.players[x].numStrats):
+                            if self.payoffMatrix[self.toIndex(others)][others[0]][j].getListNode(x).bestResponse:
+                                maxStrat = j
+                    else: # x > 1
+                        for m in range(len(self.payoffMatrix)):
+                            for i in range(self.players[0].numStrats):
+                                for j in range(self.players[1].numStrats):
+                                    if self.payoffMatrix[m][others[0]][others[1]].getListNode(x).bestResponse:
+                                        maxStrat = self.toProfile(m)[x]
+                    self.kStrategies[r][x] = maxStrat
+                if r == self.players[x].rationality:
+                    self.players[x].kChoice = self.kStrategies[r][x]
+        return
 
     def computeMixedEquilibria(self):       
         if self.numPlayers < 3:
@@ -1608,6 +1654,42 @@ class SimGame:
                         m += product
         return br
     
+    def maxStrat(self, x):
+        """Returns the strategy that gives player x + 1's maximum payoff over all outcomes
+        
+        Args:
+            x (int): the player index        
+        """
+        maxStrat = 0
+        maxVal = -10000000
+        curList = ListNode()
+        
+        if x == 0:
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        curList = self.payoffMatrix[m][i][j]
+                        if curList.getListNode(x).payoff > maxVal:
+                            maxVal = curList.getListNode(x).payoff
+                            maxStrat = i
+        elif x == 1:
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        curList = self.payoffMatrix[m][i][j]
+                        if curList.getListNode(x).payoff > maxVal:
+                            maxVal = curList.getListNode(x).payoff
+                            maxStrat = j
+        else: # x > 1
+            for m in range(len(self.payoffMatrix)):
+                for i in range(self.players[0].numStrats):
+                    for j in range(self.players[1].numStrats):
+                        curList = self.payoffMatrix[m][i][j]
+                        if curList.getListNode(x).payoff > maxVal:
+                            maxVal = curList.getListNode(x).payoff
+                            maxStrat = self.toProfile(m)[x]
+        return maxStrat
+    
     def print(self):
         """Prints the payoff matrix
         """
@@ -2240,9 +2322,17 @@ freeMoney = [
 #     [[10, 10], [20, 20]]
 # ]
 
-# G = SimGame(2)
+G = SimGame(2)
+G.enterData(2, [3, 3], iesds)
 # G.appendStrategy(1, append_2)
-# G.print()
+G.print()
+print("kStrategies:", G.kStrategies)
+kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+print("kChoices:", kChoices)
+G.computeKStrategies()
+print("kStrategies:", G.kStrategies)
+kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+print("kChoices:", kChoices)
 
 # o1 = ListNode()
 # o2 = ListNode()
