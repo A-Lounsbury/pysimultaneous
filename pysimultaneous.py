@@ -760,6 +760,18 @@ class SimGame:
         computeKStrategies()
         return
     
+    def computeKExpectedUtilities(self):
+        EU = [0.0 for x in range(self.numPlayers)]
+        for x in range(self.numPlayers):
+            EU[x] = 0.0
+            for num in range(len(self.kOutcomes)):
+                if self.numPlayers < 3:
+                    curList = self.payoffMatrix[0][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
+                else:
+                    curList = payoffMatrix[self.toIndex(self.kOutcomes[num])][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
+                EU[x] += curList.getListNode(x).payoff * self.outcomeProbabilities[num]
+        return EU
+    
     def computeKMatrix(self, probabilities):
         """Computes the kMatrix as well as kOutcomes in the process
         """
@@ -767,7 +779,6 @@ class SimGame:
         temp = []
         inOutcomes = False
         probability = -1.0
-        EU = [0.0 for x in range(self.numPlayers)]
         self.kOutcomes = []
         self.computeKStrategies()
         for m in range(len(self.kMatrix)):
@@ -790,15 +801,7 @@ class SimGame:
         
         self.computeOutcomeProbabilities()
         
-        # Computing expected utilities
-        for x in range(self.numPlayers):
-            EU[x] = 0.0
-            for num in range(len(self.kOutcomes)):
-                if self.numPlayers < 3:
-                    curList = self.payoffMatrix[0][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
-                else:
-                    curList = payoffMatrix[self.toIndex(self.kOutcomes[num])][self.kOutcomes[num][0]][self.kOutcomes[num][1]]
-                EU[x] += curList.getListNode(x).payoff * self.outcomeProbabilities[num]
+        EU = self.computeKExpectedUtilities()
                 
         self.probabilizeKChoices()
         print()
@@ -2588,11 +2591,11 @@ krmodel = [
 #     [[10, 10], [20, 20]]
 # ]
 
-G = SimGame(2)
-G.enterData(2, [3, 3], krmodel)
-G.print()
-print()
-G.printKMatrix(probabilities=[0.1, 0.4, 0.4, 0.1])
+# G = SimGame(2)
+# G.enterData(2, [3, 3], krmodel)
+# G.print()
+# print()
+# G.printKMatrix(probabilities=[0.1, 0.4, 0.4, 0.1])
 
 # o1 = ListNode()
 # o2 = ListNode()
