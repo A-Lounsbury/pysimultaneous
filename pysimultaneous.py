@@ -1731,6 +1731,89 @@ class SimGame:
                             maxStrat = self.toProfile(m)[x]
         return maxStrat
     
+    def paretoOptimal(self, profile):
+        """Checks if an outcome is Pareto optimal
+        
+        Args:
+            profile (list): the strategy profile for the outcome in question
+        """
+        curList = ListNode()
+        curProfile = self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]]
+        # (-->)
+        onePlayerWorseOff = True
+        # (<--)
+        # onePlayerBetterOff = True
+        # count = 0
+        # (-->)
+        betterOutcomes = []
+        betterOffPlayers = []
+        worseOff = []
+        # (<--)
+        worseOutcomes = []
+        worseOffPlayers = []
+        betterOff = []
+        
+        comparing = [0 for x in range(self.numPlayers)]
+        for m in range(len(self.payoffMatrix)):
+            comparing = self.toProfile(m)
+            for i in range(self.players[0].numStrats):
+                comparing[0] = i
+                for j in range(self.players[1].numStrats):
+                    comparing[1] = j
+                    if comparing != profile:
+                        foundOneBetter = False
+                        foundOneWorse = False
+                        x = 0
+                        while (not foundOneBetter or not foundOneWorse) and x < self.numPlayers:
+                            curList = self.payoffMatrix[m][i][j]
+                            curProfile = self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]]
+                        
+                            if curProfile.getListNode(x).payoff < curList.getListNode(x).payoff:
+                                foundOneBetter = True
+                                betterOffPlayers.append(x)
+                                betterOutcomes.append(self.toProfile(m))
+                                # first two are -1
+                                betterOutcomes[len(betterOutcomes) - 1][0] = i
+                                betterOutcomes[len(betterOutcomes) - 1][1] = j
+                                worseOff.append(False)
+                            elif curProfile.getListNode(x).payoff > curList.getListNode(x).payoff:
+                                foundOneWorse = True
+                                worseOffPlayers.append(x)
+                                worseOutcomes.append(self.toProfile(m))
+                                # first two are -1
+                                worseOutcomes[len(worseOutcomes) - 1][0] = i
+                                worseOutcomes[len(worseOutcomes) - 1][1] = j
+                                betterOff.append(False)
+                            x += 1
+        
+        # determine if at least one other player is worse off at each outcome found
+        if len(betterOutcomes) > 0:
+            if len(worseOutcomes) <= 0:
+                return False
+            
+            n = 0
+            while n < len(worseOff) and not worseOff[n]:
+                for x in range(self.numPlayers):
+                    if betterOffPlayers[n] != x:
+                        curList = self.payoffMatrix[self.toIndex(betterOutcomes[n])][betterOutcomes[n][0]][betterOutcomes[n][1]]
+                        curProfile = self.payoffMatrix[self.toIndex(profile)][profile[0]][profile[1]]
+
+                        if curList.getListNode(x).payoff < curProfile.getListNode(x).payoff:
+                            worseOff[n] = True
+                n += 1
+            n = 0
+            while n < len(worseOff) and onePlayerWorseOff:
+                if not worseOff[n]:
+                    onePLayersWorseOff = False
+                n += 1
+            
+            if onePlayerWorseOff:
+                return True
+            else:
+                return False
+        else:
+            return True
+    
     def print(self):
         """Prints the payoff matrix
         """
@@ -2435,22 +2518,26 @@ freeMoney = [
 # ]
 
 G = SimGame(2)
-G.enterData(2, [3, 3], iesds)
+G.enterData(2, [2, 2], bos)
 # G.appendStrategy(1, append_2)
 G.print()
+print(G.paretoOptimal([0, 0]))
+print(G.paretoOptimal([1, 0]))
+print(G.paretoOptimal([0, 1]))
+print(G.paretoOptimal([1, 1]))
 # print("kStrategies:", G.kStrategies)
 # kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
 # print("kChoices:", kChoices)
 # G.computeKStrategies()
 # print("kStrategies:", G.kStrategies)
-kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-print("kChoices:", kChoices)
-G.players[0].rationality = 0
-G.players[1].rationality = 2
-G.printKMatrix()
-kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-print("kChoices:", kChoices)
-G.probabilizeKChoices([0.5, 0.5, 0.5, 0.5])
+# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+# print("kChoices:", kChoices)
+# G.players[0].rationality = 0
+# G.players[1].rationality = 2
+# G.printKMatrix()
+# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+# print("kChoices:", kChoices)
+# G.probabilizeKChoices([0.5, 0.5, 0.5, 0.5])
 
 # o1 = ListNode()
 # o2 = ListNode()
