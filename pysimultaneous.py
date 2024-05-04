@@ -2322,17 +2322,17 @@ freeMoney = [
 #     [[10, 10], [20, 20]]
 # ]
 
-G = SimGame(2)
-G.enterData(2, [3, 3], iesds)
+# G = SimGame(2)
+# G.enterData(2, [3, 3], iesds)
 # G.appendStrategy(1, append_2)
-G.print()
-print("kStrategies:", G.kStrategies)
-kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-print("kChoices:", kChoices)
-G.computeKStrategies()
-print("kStrategies:", G.kStrategies)
-kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
-print("kChoices:", kChoices)
+# G.print()
+# print("kStrategies:", G.kStrategies)
+# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+# print("kChoices:", kChoices)
+# G.computeKStrategies()
+# print("kStrategies:", G.kStrategies)
+# kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
+# print("kChoices:", kChoices)
 
 # o1 = ListNode()
 # o2 = ListNode()
