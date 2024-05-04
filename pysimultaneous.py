@@ -1807,6 +1807,38 @@ class SimGame:
                         else:
                             print()
                 print()
+    
+    def probabilizeKChoices(self, probabilities):
+        self.computeKStrategies()
+        self.outcomeProbabilities = [0.0 for n in range(len(self.kOutcomes))]
+        
+        for r1 in range(4):
+            for r2 in range(4):
+                probability = 0.0
+                
+                # find which outcome the kMatrix entry corresponds to
+                index = 0
+                while self.kOutcomes[index][0] != self.kStrategies[r1][0] or self.kOutcomes[index][1] != self.kStrategies[r2][1]:
+                    index += 1
+                    
+                probability += probabilities[r1] * probabilities[r2]
+                
+                self.outcomeProbabilities[index] = self.outcomeProbabilities[index] + probability
+        
+        choices = [0 for x in range(self.numPlayers)]
+        for x in range(self.numPlayers):
+            choices[x] = self.kStrategies[self.players[x].rationality][x]
+            self.players[x].kChoice = choices[x]
+        
+        for n in range(len(self.kOutcomes)):
+            print("P(", end="")
+            for x in range(self.numPlayers):
+                print(self.kOutcomes[n][x], end="")
+                if x < self.numPlayers - 1:
+                    print(", ", end="")
+            print(") = " + str(self.outcomeProbabilities[n]))
+        
+        return
 
     def readFromFile(self, fileName):
         addMoreOutcomesPast2 = False # kMatrix
@@ -2418,6 +2450,7 @@ G.players[1].rationality = 2
 G.printKMatrix()
 kChoices = [G.players[x].kChoice for x in range(G.numPlayers)]
 print("kChoices:", kChoices)
+G.probabilizeKChoices([0.5, 0.5, 0.5, 0.5])
 
 # o1 = ListNode()
 # o2 = ListNode()
