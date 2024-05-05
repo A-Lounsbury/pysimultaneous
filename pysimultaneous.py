@@ -282,7 +282,8 @@ class SimGame:
         # maximum rationality is 3, meaning there are 4 rationality levels
         numMatrices = 1
         if numPlayers > 2:
-            numMatrices = 4 ** self.numPlayers
+            for x in range(2, numPlayers):
+                numMatrices *= self.players[x].numStrats
         
         for m in range(numMatrices):
             self.kMatrix.append([])
@@ -972,6 +973,8 @@ class SimGame:
                 for x in range(self.numPlayers):
                     for k in range(self.players[x].numStrats - 1):
                         alphabetVars[x].append(sympy.symbols(alphabet[x] + "_" + str(k)))
+
+                playerVars = [alphabetVars[x][0] for x in range(self.numPlayers)] # the variables that are in the polynomials
                 
                 # polynomials that are multiplied by the coefficients
                 polysToMultiply = [[] for x in range(self.numPlayers)]
@@ -1080,28 +1083,48 @@ class SimGame:
                             EU_polynomials[x].append(poly)
                 
                 # Collecting the equations to be solved
+                diffs = []
                 EU_equations = [[] for x in range(self.numPlayers)]
+                alt = [[] for x in range(self.numPlayers)]
                 for x in range(self.numPlayers):
                     if self.players[x].numStrats % 2 == 0:
                         for k in range(0, self.players[x].numStrats, 2):
-                            EU_equations[x].append(sympy.Eq(EU_polynomials[x][k], EU_polynomials[x][k + 1]))
+                            print("k:", k)
+                            EU_equations[x].append(sympy.Eq(simplify(EU_polynomials[x][k]), simplify(EU_polynomials[x][k + 1])))
+                            diffs.append(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]))
+                            alt[x].append(sympy.Eq(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]), 0))
                     else:
                         for k in range(0, self.players[x].numStrats - 1, 2):
+                            print("K:", k)
                             EU_equations[x].append(sympy.Eq(EU_polynomials[x][k], EU_polynomials[x][k + 1]))       
                             # adding an equation that contains the last polynomial
-                            EU_equations[x].append(sympy.Eq(EU_polynomials[x][0], EU_polynomials[x][-1]))
-                            
-                # Solving the equations
-                EU_sets = [sympy.solve(tuple(EU_equations[x]), tuple(alphabetVars[x]), set=True) for x in range(self.numPlayers)]
+                            EU_equations[x].append(sympy.Eq(simplify(EU_polynomials[x][0]), simplify(EU_polynomials[x][-1])))
+                            diffs.append(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]))
+                            alt[x].append(sympy.Eq(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]), 0))
                 
-                for x in range(self.numPlayers):
-                    if EU_sets[x][1] == set():
-                        print("Empty set found. No mixed strategy equilibrium.")
-                        return []
+                for player in alt:
+                    for eq in player:
+                        print(eq)
+                    print()
+                
+                print("playerVars:", playerVars)
+                
+                # Solving the equations
+                EU_dicts = [sympy.solve(diffs[x], tuple(playerVars), dict=True) for x in range(self.numPlayers)]
+                
+                for item in EU_dicts:
+                    print(item)
+                    
+                print(EU_dicts[1][0][sympy.symbols('c_0')])
+                
+                # for x in range(self.numPlayers):
+                #     if EU_sets[x][1] == set():
+                #         print("Empty set found. No mixed strategy equilibrium.")
+                #         return []
                 
                 # FIXME: finish for n >= 3 players when there actually is a MSE
                 
-            else: # numPlayers >= 26
+            else: # numPlayers >= 53
                 print(f"Error: not enough letters to have variables for all {self.numPlayers} players")
             return []
         return []
@@ -2583,6 +2606,28 @@ krmodel = [
     ]
 ]
 
+game1 = [
+    [
+        [[-3, -3, 2], [0, 5, 4]],
+        [[-5, 0, 1], [-1, -1, 1]]
+    ],
+    [
+        [[0, 0, 1], [5, 1, 3]],
+        [[1, 5, 0], [6, 6, 2]]
+    ]
+]
+
+game2 = [
+    [
+        [[1, 2, 1], [7, 4, 2]],
+        [[5, 6, 3], [3, 8, 1]]
+    ],
+    [
+        [[2, 4, 0], [6, 8, 1]],
+        [[10, 12, 3], [14, 16, 4]]
+    ]
+]
+
 # o1 = ListNode()
 # o2 = ListNode()
 # o1 = o1.load([10, 10])
@@ -2637,9 +2682,11 @@ krmodel = [
 #     ]
 # ]
 
-# H = SimGame(3)
-# H.appendStrategy(2, second)
-# H.print()
+H = SimGame(3)
+H.enterData(3, [2, 2, 2], game2)
+H.print()
+H.computeMixedEquilibria()
+print("MSE:", H.mixedEquilibria)
 
 # o1 = ListNode()
 # o2 = ListNode()
