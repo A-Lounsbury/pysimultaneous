@@ -2299,18 +2299,23 @@ class SimGame:
         print("equations:", equations)
         print("variables:", variables)
         
-        # Sort equations based on the number of variables they contain
-        sorted_equations = sorted(equations.items(), key=lambda x: len(x[1].free_symbols))
+        # Combine equations and variables into tuples
+        combined = list(zip(equations.keys(), equations.values()))
         
-        # Extract sorted equations and their associated variables
-        sorted_variables, sorted_eqs = zip(*sorted_equations)
-        sorted_variables = list(sorted_variables)
-        sorted_eqs = list(sorted_eqs)
+        # Sort combined list based on the number of free symbols in equations
+        combined.sort(key=lambda x: len(x[1].free_symbols))
+        
+        # Unpack sorted equations and variables
+        sorted_eqs = {eq[0]: eq[1] for eq in combined}
+        sorted_variables = [var[0] for var in combined]
         print("sorted_eqs:", sorted_eqs)
+        print("sorted_variables:", sorted_variables)
         
         # Iterate until all variables are solved for
-        while sorted_variables:
-            variable = sorted_variables.pop(0)
+        k = 0
+        while sorted_variables and k < 5:
+            k += 1
+            variable = sorted_variables[0]
             print("variable:", variable)
             try:
                 # Solve the equation containing the chosen variable
@@ -2327,20 +2332,19 @@ class SimGame:
                     print("\tother_variable:", other_variable)
                     print("\teq:", eq)
                     # Check if the equation contains the variable
-                    if variable in eq.free_symbols or not eq.free_symbols:
+                    if variable in eq.free_symbols:
                         print("\tbefore:", sorted_eqs)
                         print("\t\tvariable:", variable)
                         print("\t\tvalue:", solved_variable[variable])
-                        sorted_eqs[sorted_eqs.index(eq)] = eq.subs(variable, solved_variable[variable])
+                        sorted_eqs[other_variable] = eq.subs(variable, solved_variable[variable])
                         print("\tafter:", sorted_eqs)
                     else:
                         # Variable not present in the equation, skip substitution
                         print(f"Variable {variable} does not exist in equation {eq}.")
                         pass
                 # Remove solved variable and its equation from the lists
-                # print(f"Attempting to remove {variable} from {sorted_variables}")
-                # sorted_variables.remove(variable)
-                del equations[variable]
+                sorted_variables.remove(variable)
+                del sorted_eqs[variable]
             except IndexError:
                 # Handle case where no solution is found
                 print(f"No solution found for equation {equations[variable]} involving variable {variable}")
