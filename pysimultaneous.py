@@ -8,6 +8,7 @@ import numpy as np
 import sympy
 from sympy import solve
 from sympy import simplify
+from sympy import Symbol
 import warnings
 from pprint import pprint
 import colorama
@@ -851,7 +852,6 @@ class SimGame:
                     num = self.maxStrat(x) # num is what player x will do at L_0
                     self.kStrategies[0][x] = num
                 else:
-                    # FIXME: finish after writing maxStrat function
                     others = [0 for y in range(self.numPlayers)]
                     for y in range(self.numPlayers):
                         if y == x:
@@ -1102,6 +1102,10 @@ class SimGame:
                             diffs.append(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]))
                             alt[x].append(sympy.Eq(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]), 0))
                 
+                new_eqs = []
+                for p in diffs:
+                    new_eqs.append(sympy.Eq(p, 0))
+                
                 for player in alt:
                     for eq in player:
                         print(eq)
@@ -1114,15 +1118,15 @@ class SimGame:
                 
                 for item in EU_dicts:
                     print(item)
-                    
-                print(EU_dicts[1][0][sympy.symbols('c_0')])
                 
-                # for x in range(self.numPlayers):
-                #     if EU_sets[x][1] == set():
-                #         print("Empty set found. No mixed strategy equilibrium.")
-                #         return []
+                new_dict = {}
+                for d in EU_dicts:
+                    new_dict.update(d[0])
+                
+                solution = self.solve_system(new_dict, playerVars)
                 
                 # FIXME: finish for n >= 3 players when there actually is a MSE
+                return solution
                 
             else: # numPlayers >= 53
                 print(f"Error: not enough letters to have variables for all {self.numPlayers} players")
@@ -2290,7 +2294,61 @@ class SimGame:
                 if m < len(self.payoffMatrix) - 1:
                     file.write("\n\n")
             print("Saved to " + fileName + ".\n")
-            
+    
+    def solve_system(self, equations, variables):
+        print("equations:", equations)
+        print("variables:", variables)
+        
+        # Sort equations based on the number of variables they contain
+        sorted_equations = sorted(equations.items(), key=lambda x: len(x[1].free_symbols))
+        
+        # Extract sorted equations and their associated variables
+        sorted_variables, sorted_eqs = zip(*sorted_equations)
+        sorted_variables = list(sorted_variables)
+        sorted_eqs = list(sorted_eqs)
+        print("sorted_eqs:", sorted_eqs)
+        
+        # Iterate until all variables are solved for
+        while sorted_variables:
+            variable = sorted_variables.pop(0)
+            print("variable:", variable)
+            try:
+                # Solve the equation containing the chosen variable
+                print(f"Solving equation {equations[variable]} for variable {variable}.")
+                solutions = solve(equations[variable], variable)
+                print("solutions:", solutions)
+                if not equations[variable].free_symbols:
+                    solutions = [{variable:equations[variable]}]
+                solved_variable = solutions[0]
+                print("solutions:", solutions)
+                print("solved_variable:", solved_variable)
+                # Substitute the solved variable into other equations
+                for other_variable, eq in zip(sorted_variables, sorted_eqs):
+                    print("\tother_variable:", other_variable)
+                    print("\teq:", eq)
+                    # Check if the equation contains the variable
+                    if variable in eq.free_symbols or not eq.free_symbols:
+                        print("\tbefore:", sorted_eqs)
+                        print("\t\tvariable:", variable)
+                        print("\t\tvalue:", solved_variable[variable])
+                        sorted_eqs[sorted_eqs.index(eq)] = eq.subs(variable, solved_variable[variable])
+                        print("\tafter:", sorted_eqs)
+                    else:
+                        # Variable not present in the equation, skip substitution
+                        print(f"Variable {variable} does not exist in equation {eq}.")
+                        pass
+                # Remove solved variable and its equation from the lists
+                # print(f"Attempting to remove {variable} from {sorted_variables}")
+                # sorted_variables.remove(variable)
+                del equations[variable]
+            except IndexError:
+                # Handle case where no solution is found
+                print(f"No solution found for equation {equations[variable]} involving variable {variable}")
+                continue
+        # Solve the remaining equations for the remaining variables
+        solution = solve(list(equations.values()), variables)
+        return solution
+        
     def toIndex(self, profile):
         """Converts a sequence of strategies into the index in a stack of payoff arrays that correspond to that sequence. This is the inverse of the function toProfile. 
 

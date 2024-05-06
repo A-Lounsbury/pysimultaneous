@@ -3,6 +3,7 @@ pysimultaneous_numpy.py
 scipy_test.py
 sympy_test.py
 old_computeBestResponses.py
+atoms_test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
