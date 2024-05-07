@@ -1006,7 +1006,8 @@ class SimGame:
                             poly += term
                     EU_coefs[0].append(poly_coefs)
                     EU_polynomials[0].append(poly)
-                # getting for player 2
+            
+                # getting polynomials for player 2
                 for j in range(self.players[1].numStrats):
                     poly_coefs = []
                     poly = 0
@@ -1025,6 +1026,7 @@ class SimGame:
                     EU_coefs[1].append(poly_coefs)
                     EU_polynomials[1].append(poly)
                     
+                # getting polynomials for players 3, 4,...
                 for x in range(2, self.numPlayers):
                     poly_coefs = []
                     for k in range(self.players[x].numStrats - 1):
@@ -1082,25 +1084,39 @@ class SimGame:
                             EU_coefs[x].append(poly_coefs)
                             EU_polynomials[x].append(poly)
                 
+                print("POLYNOMIALS:")
+                for player in EU_polynomials:
+                    for poly in player:
+                        print(poly)
+                    print()
+                
                 # Collecting the equations to be solved
                 diffs = []
                 EU_equations = [[] for x in range(self.numPlayers)]
                 alt = [[] for x in range(self.numPlayers)]
                 for x in range(self.numPlayers):
                     if self.players[x].numStrats % 2 == 0:
+                        print("EVEN")
                         for k in range(0, self.players[x].numStrats, 2):
                             print("k:", k)
                             EU_equations[x].append(sympy.Eq(simplify(EU_polynomials[x][k]), simplify(EU_polynomials[x][k + 1])))
+                            print("appending:", EU_polynomials[x][k] - EU_polynomials[x][k + 1])
                             diffs.append(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]))
                             alt[x].append(sympy.Eq(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]), 0))
                     else:
+                        print("ODD")
                         for k in range(0, self.players[x].numStrats - 1, 2):
                             print("K:", k)
                             EU_equations[x].append(sympy.Eq(EU_polynomials[x][k], EU_polynomials[x][k + 1]))       
                             # adding an equation that contains the last polynomial
                             EU_equations[x].append(sympy.Eq(simplify(EU_polynomials[x][0]), simplify(EU_polynomials[x][-1])))
+                            print("appending:", EU_polynomials[x][k] - EU_polynomials[x][k + 1])
                             diffs.append(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]))
                             alt[x].append(sympy.Eq(simplify(EU_polynomials[x][k] - EU_polynomials[x][k + 1]), 0))
+
+                print("DIFFS:")
+                for poly in diffs:
+                    print(poly)
                 
                 new_eqs = []
                 for p in diffs:
@@ -2744,11 +2760,11 @@ game2 = [
 #     ]
 # ]
 
-H = SimGame(3)
-H.enterData(3, [2, 2, 2], game2)
-H.print()
-H.computeMixedEquilibria()
-print("MSE:", H.mixedEquilibria)
+# H = SimGame(3)
+# H.enterData(3, [2, 2, 2], game2)
+# H.print()
+# H.computeMixedEquilibria()
+# print("MSE:", H.mixedEquilibria)
 
 # o1 = ListNode()
 # o2 = ListNode()
